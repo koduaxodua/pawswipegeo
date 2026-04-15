@@ -9,20 +9,20 @@ export default function Favorites() {
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   return (
-    <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
+    <div className="min-h-screen pb-24 pt-4 px-4 max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Heart className="h-6 w-6 text-accent" fill="currentColor" />
         <h1 className="text-2xl font-bold text-foreground">მოწონებული ძაღლები</h1>
       </div>
 
       {likedDogs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center mt-12">
+        <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center mt-12 max-w-md mx-auto">
           <span className="text-5xl mb-4">💔</span>
           <h2 className="text-lg font-semibold text-foreground mb-2">ჯერ არაფერი მოგწონებია</h2>
           <p className="text-muted-foreground text-sm">სვაიპე მარჯვნივ ან დააჭირე ❤️ რომ მოიწონო ძაღლი</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {likedDogs.map(dog => (
             <div
               key={dog.id}

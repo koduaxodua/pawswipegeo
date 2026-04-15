@@ -36,7 +36,7 @@ export default function AddDog() {
   };
 
   return (
-    <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
+    <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Plus className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">ძაღლის დამატება</h1>
@@ -46,12 +46,16 @@ export default function AddDog() {
         <FormField label="ფოტოს URL *" value={form.photo} onChange={v => update('photo', v)} placeholder="https://example.com/photo.jpg" />
 
         {form.photo && (
-          <img src={form.photo} alt="preview" className="w-full h-48 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = 'none')} />
+          <img src={form.photo} alt="preview" className="w-full h-48 sm:h-64 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = 'none')} />
         )}
 
-        <FormField label="სახელი *" value={form.name} onChange={v => update('name', v)} placeholder="მაგ: ბობი" />
-        <FormField label="ასაკი" value={form.age} onChange={v => update('age', v)} placeholder="მაგ: 2 წელი" />
-        <FormField label="ჯიში" value={form.breed} onChange={v => update('breed', v)} placeholder="მაგ: ნარევი" />
+        {/* Two-column grid on tablet+ */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="სახელი *" value={form.name} onChange={v => update('name', v)} placeholder="მაგ: ბობი" />
+          <FormField label="ასაკი" value={form.age} onChange={v => update('age', v)} placeholder="მაგ: 2 წელი" />
+          <FormField label="ჯიში" value={form.breed} onChange={v => update('breed', v)} placeholder="მაგ: ნარევი" />
+          <FormField label="ლოკაცია *" value={form.location} onChange={v => update('location', v)} placeholder="მაგ: ვაკე, თბილისი" />
+        </div>
 
         <div className="glass rounded-2xl p-4">
           <label className="block text-sm font-medium text-foreground mb-2">სქესი</label>
@@ -61,7 +65,7 @@ export default function AddDog() {
                 key={g}
                 type="button"
                 onClick={() => update('gender', g)}
-                className={`flex-1 py-2 rounded-xl text-sm font-medium transition ${
+                className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition ${
                   form.gender === g
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-secondary text-secondary-foreground'
@@ -75,14 +79,16 @@ export default function AddDog() {
 
         <FormField label="ხასიათი" value={form.personality} onChange={v => update('personality', v)} placeholder="მაგ: მეგობრული, მშვიდი" multiline />
         <FormField label="ჯანმრთელობა" value={form.health} onChange={v => update('health', v)} placeholder="მაგ: აცრილი, ჯანმრთელი" />
-        <FormField label="ლოკაცია *" value={form.location} onChange={v => update('location', v)} placeholder="მაგ: ვაკე, თბილისი" />
         <FormField label="აღწერა" value={form.description} onChange={v => update('description', v)} placeholder="მოკლე აღწერა ძაღლის შესახებ..." multiline />
-        <FormField label="თქვენი სახელი" value={form.caretakerName} onChange={v => update('caretakerName', v)} placeholder="მაგ: ნინო" />
-        <FormField label="საკონტაქტო ნომერი *" value={form.caretakerPhone} onChange={v => update('caretakerPhone', v)} placeholder="+995 5XX XX XX XX" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="თქვენი სახელი" value={form.caretakerName} onChange={v => update('caretakerName', v)} placeholder="მაგ: ნინო" />
+          <FormField label="საკონტაქტო ნომერი *" value={form.caretakerPhone} onChange={v => update('caretakerPhone', v)} placeholder="+995 5XX XX XX XX" />
+        </div>
 
         <button
           type="submit"
-          className="w-full bg-primary text-primary-foreground py-3 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98]"
+          className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98]"
         >
           <PawPrint className="h-5 w-5" />
           ძაღლის დამატება
