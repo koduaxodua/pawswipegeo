@@ -40,7 +40,7 @@ export default function Index() {
         </div>
         <button
           onClick={toggleTheme}
-          className="glass h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          className="glass h-10 w-10 rounded-full flex items-center justify-center transition-colors text-primary-foreground"
           aria-label="თემის შეცვლა"
         >
           {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
