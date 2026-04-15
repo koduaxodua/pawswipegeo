@@ -11,7 +11,7 @@ interface Props {
 export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl glass-strong overflow-y-auto px-5 pb-8">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl glass-strong overflow-y-auto !left-1/2 !-translate-x-1/2 !max-w-lg !w-full px-5 pb-8">
         <div className="mx-auto w-10 h-1 rounded-full bg-muted-foreground/30 mt-2 mb-4" />
         <SheetHeader>
           <SheetTitle className="text-xl font-bold text-foreground">{dog.name}</SheetTitle>
