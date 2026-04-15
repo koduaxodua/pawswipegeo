@@ -1,15 +1,20 @@
 import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SwipeCard } from '@/components/SwipeCard';
+import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
-import { Heart, X, RotateCcw } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
+import { Heart, X, RotateCcw, Moon, Sun } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import type { Dog } from '@/data/dogs';
 
 export default function Index() {
   const { dogs } = useDogs();
   const { likeDog } = useLikedDogs();
+  const { isDark, toggle: toggleTheme } = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   const currentDog = dogs[currentIndex];
   const nextDog = dogs[currentIndex + 1];
@@ -23,19 +28,27 @@ export default function Index() {
   }, [currentDog, likeDog]);
 
   const handleReset = () => setCurrentIndex(0);
-
   const allSwiped = currentIndex >= dogs.length;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-20 pt-4">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-24 pt-4">
       {/* Header */}
-      <div className="flex items-center gap-2 mb-4">
-        <span className="text-3xl">🐾</span>
-        <h1 className="text-2xl font-bold text-foreground">PawSwipe</h1>
+      <div className="flex items-center justify-between w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-3xl">🐾</span>
+          <h1 className="text-2xl font-bold text-foreground">PawSwipe</h1>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className="glass h-10 w-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="თემის შეცვლა"
+        >
+          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+        </button>
       </div>
 
       {allSwiped ? (
-        <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm">
+        <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
           <span className="text-6xl mb-4">🐶</span>
           <h2 className="text-xl font-semibold text-foreground mb-2">ყველა ძაღლი ნანახია!</h2>
           <p className="text-muted-foreground mb-6">შეგიძლია თავიდან დაიწყო ან ახალი ძაღლი დაამატო</p>
@@ -50,13 +63,19 @@ export default function Index() {
       ) : (
         <>
           {/* Card stack */}
-          <div className="relative w-full max-w-sm aspect-[3/4]">
+          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg aspect-[3/4]">
             <AnimatePresence>
               {nextDog && (
                 <SwipeCard key={nextDog.id} dog={nextDog} onSwipe={() => {}} isTop={false} />
               )}
               {currentDog && (
-                <SwipeCard key={currentDog.id} dog={currentDog} onSwipe={handleSwipe} isTop={true} />
+                <SwipeCard
+                  key={currentDog.id}
+                  dog={currentDog}
+                  onSwipe={handleSwipe}
+                  onTap={() => setSelectedDog(currentDog)}
+                  isTop={true}
+                />
               )}
             </AnimatePresence>
           </div>
@@ -77,6 +96,14 @@ export default function Index() {
             </button>
           </div>
         </>
+      )}
+
+      {selectedDog && (
+        <DogDetailSheet
+          dog={selectedDog}
+          open={!!selectedDog}
+          onOpenChange={open => !open && setSelectedDog(null)}
+        />
       )}
     </div>
   );
