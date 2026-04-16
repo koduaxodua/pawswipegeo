@@ -59,13 +59,13 @@ export default function AddDog() {
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Plus className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">ძაღლის დამატება</h1>
+        <h1 className="text-2xl font-bold text-primary-foreground">ძაღლის დამატება</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Photo upload */}
         <div className="glass rounded-2xl p-4">
-          <label className="block text-sm font-medium text-foreground mb-2">ფოტო *</label>
+          <label className="block text-sm font-medium text-primary-foreground mb-2">ფოტო *</label>
           <input
             ref={fileInputRef}
             type="file"
@@ -79,7 +79,7 @@ export default function AddDog() {
               <button
                 type="button"
                 onClick={() => { update('photo', ''); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                className="absolute top-2 right-2 glass h-8 w-8 rounded-full flex items-center justify-center text-foreground text-sm font-bold"
+                className="absolute top-2 right-2 glass h-8 w-8 rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold"
               >
                 ✕
               </button>
@@ -106,7 +106,7 @@ export default function AddDog() {
         </div>
 
         <div className="glass rounded-2xl p-4">
-          <label className="block text-sm font-medium text-foreground mb-2">სქესი</label>
+          <label className="block text-sm font-medium text-primary-foreground mb-2">სქესი</label>
           <div className="flex gap-3">
             {(['მამრობითი', 'მდედრობითი'] as const).map(g => (
               <button
@@ -153,20 +153,20 @@ function FormField({
 }) {
   return (
     <div className="glass rounded-2xl p-4">
-      <label className="block text-sm font-medium text-foreground mb-2">{label}</label>
+      <label className="block text-sm font-medium text-primary-foreground mb-2">{label}</label>
       {multiline ? (
         <textarea
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none resize-none min-h-[80px]"
+          className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none resize-none min-h-[80px]"
         />
       ) : (
         <input
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
+          className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none"
         />
       )}
     </div>
