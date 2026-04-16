@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint } from 'lucide-react';
+import { Plus, PawPrint, Upload, Image } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AddDog() {
