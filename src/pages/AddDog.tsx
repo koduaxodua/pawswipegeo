@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 export default function AddDog() {
   const { addDog } = useDogs();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -23,6 +24,25 @@ export default function AddDog() {
 
   const update = (key: string, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast({ title: 'გთხოვთ აირჩიოთ სურათი', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'სურათი ძალიან დიდია (მაქს. 5MB)', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      update('photo', result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,11 +63,39 @@ export default function AddDog() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <FormField label="ფოტოს URL *" value={form.photo} onChange={v => update('photo', v)} placeholder="https://example.com/photo.jpg" />
-
-        {form.photo && (
-          <img src={form.photo} alt="preview" className="w-full h-48 sm:h-64 object-cover rounded-2xl" onError={(e) => (e.currentTarget.style.display = 'none')} />
-        )}
+        {/* Photo upload */}
+        <div className="glass rounded-2xl p-4">
+          <label className="block text-sm font-medium text-foreground mb-2">ფოტო *</label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            className="hidden"
+          />
+          {form.photo ? (
+            <div className="relative">
+              <img src={form.photo} alt="preview" className="w-full h-48 sm:h-64 object-cover rounded-2xl" />
+              <button
+                type="button"
+                onClick={() => { update('photo', ''); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                className="absolute top-2 right-2 glass h-8 w-8 rounded-full flex items-center justify-center text-foreground text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
+            >
+              <Upload className="h-8 w-8" />
+              <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
+              <span className="text-xs">მაქს. 5MB</span>
+            </button>
+          )}
+        </div>
 
         {/* Two-column grid on tablet+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
