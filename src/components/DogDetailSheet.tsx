@@ -32,23 +32,23 @@ export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
           </div>
 
           <div className="glass rounded-xl p-3 space-y-1.5">
-            <h3 className="text-sm font-semibold text-foreground">აღწერა</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">{dog.description}</p>
+            <h3 className="text-sm font-semibold text-primary-foreground">აღწერა</h3>
+            <p className="text-xs text-primary-foreground/70 leading-relaxed">{dog.description}</p>
           </div>
 
           <div className="glass rounded-xl p-3 space-y-1.5">
-            <h3 className="text-sm font-semibold text-foreground">ხასიათი</h3>
-            <p className="text-xs text-muted-foreground">{dog.personality}</p>
+            <h3 className="text-sm font-semibold text-primary-foreground">ხასიათი</h3>
+            <p className="text-xs text-primary-foreground/70">{dog.personality}</p>
           </div>
 
           <div className="glass rounded-xl p-3 space-y-1.5">
-            <h3 className="text-sm font-semibold text-foreground">ჯანმრთელობა</h3>
-            <p className="text-xs text-muted-foreground">{dog.health}</p>
+            <h3 className="text-sm font-semibold text-primary-foreground">ჯანმრთელობა</h3>
+            <p className="text-xs text-primary-foreground/70">{dog.health}</p>
           </div>
 
           <div className="glass rounded-xl p-3">
-            <h3 className="text-sm font-semibold text-foreground mb-1.5">მიმკედლებელი</h3>
-            <p className="text-xs text-muted-foreground">{dog.caretakerName}</p>
+            <h3 className="text-sm font-semibold text-primary-foreground mb-1.5">მიმკედლებელი</h3>
+            <p className="text-xs text-primary-foreground/70">{dog.caretakerName}</p>
             <a
               href={`tel:${dog.caretakerPhone.replace(/\s/g, '')}`}
               className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-medium text-primary hover:underline"
@@ -68,8 +68,8 @@ function InfoChip({ icon, label, value }: { icon: React.ReactNode; label: string
     <div className="glass rounded-lg p-2.5 flex items-start gap-2">
       <span className="text-primary mt-0.5">{icon}</span>
       <div>
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-        <p className="text-xs font-medium text-foreground">{value}</p>
+        <p className="text-[10px] text-primary-foreground/70 leading-tight">{label}</p>
+        <p className="text-xs font-medium text-primary-foreground">{value}</p>
       </div>
     </div>
   );
