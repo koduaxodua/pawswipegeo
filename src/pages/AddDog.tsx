@@ -1,13 +1,40 @@
 import { useState, useRef } from 'react';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint, Upload, Image } from 'lucide-react';
+import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
+const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      if (w > maxWidth) {
+        h = Math.round((h * maxWidth) / w);
+        w = maxWidth;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) { reject(new Error('Canvas not supported')); return; }
+      ctx.drawImage(img, 0, 0, w, h);
+      const result = canvas.toDataURL('image/jpeg', quality);
+      resolve(result);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image load failed')); };
+    img.src = url;
+  });
+};
 
 export default function AddDog() {
   const { addDog } = useDogs();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -25,23 +52,28 @@ export default function AddDog() {
   const update = (key: string, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       toast({ title: 'გთხოვთ აირჩიოთ სურათი', variant: 'destructive' });
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'სურათი ძალიან დიდია (მაქს. 5MB)', variant: 'destructive' });
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'სურათი ძალიან დიდია (მაქს. 10MB)', variant: 'destructive' });
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      update('photo', result);
-    };
-    reader.readAsDataURL(file);
+    setUploading(true);
+    try {
+      const compressed = await compressImage(file);
+      update('photo', compressed);
+      const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
+      toast({ title: `ფოტო ატვირთულია (${sizeKB}KB) ✓` });
+    } catch {
+      toast({ title: 'ფოტოს დამუშავება ვერ მოხერხდა', variant: 'destructive' });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,11 +120,21 @@ export default function AddDog() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
               className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
             >
-              <Upload className="h-8 w-8" />
-              <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
-              <span className="text-xs">მაქს. 5MB</span>
+              {uploading ? (
+                <>
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="text-sm font-medium">მუშავდება...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8" />
+                  <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
+                  <span className="text-xs">მაქს. 10MB, ავტო-კომპრესია</span>
+                </>
+              )}
             </button>
           )}
         </div>
