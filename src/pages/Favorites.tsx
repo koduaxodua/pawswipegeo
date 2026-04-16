@@ -12,7 +12,7 @@ export default function Favorites() {
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Heart className="h-6 w-6 text-accent" fill="currentColor" />
-        <h1 className="text-2xl font-bold text-foreground">მოწონებული ძაღლები</h1>
+        <h1 className="text-2xl font-bold text-primary-foreground">მოწონებული ძაღლები</h1>
       </div>
 
       {likedDogs.length === 0 ? (
@@ -51,7 +51,7 @@ export default function Favorites() {
               </div>
               <button
                 onClick={e => { e.stopPropagation(); unlikeDog(dog.id); }}
-                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                className="p-2 text-primary-foreground/70 hover:text-destructive transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

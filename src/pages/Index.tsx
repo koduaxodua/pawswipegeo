@@ -36,7 +36,7 @@ export default function Index() {
       <div className="flex items-center justify-between w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl">🐾</span>
-          <h1 className="text-2xl font-bold text-foreground">PawSwipe</h1>
+          <h1 className="text-2xl font-bold text-primary-foreground">PawSwipe</h1>
         </div>
         <button
           onClick={toggleTheme}
