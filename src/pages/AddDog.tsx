@@ -120,11 +120,21 @@ export default function AddDog() {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
               className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
             >
-              <Upload className="h-8 w-8" />
-              <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
-              <span className="text-xs">მაქს. 5MB</span>
+              {uploading ? (
+                <>
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <span className="text-sm font-medium">მუშავდება...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-8 w-8" />
+                  <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
+                  <span className="text-xs">მაქს. 10MB, ავტო-კომპრესია</span>
+                </>
+              )}
             </button>
           )}
         </div>
