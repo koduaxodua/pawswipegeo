@@ -36,7 +36,7 @@ export default function Index() {
       <div className="flex items-center justify-between w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl">🐾</span>
-          <h1 className="text-2xl font-bold text-foreground">PawSwipe</h1>
+          <h1 className="text-2xl font-bold text-primary-foreground">PawSwipe</h1>
         </div>
         <button
           onClick={toggleTheme}
@@ -50,8 +50,8 @@ export default function Index() {
       {allSwiped ? (
         <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
           <span className="text-6xl mb-4">🐶</span>
-          <h2 className="text-xl font-semibold text-foreground mb-2">ყველა ძაღლი ნანახია!</h2>
-          <p className="text-muted-foreground mb-6">შეგიძლია თავიდან დაიწყო ან ახალი ძაღლი დაამატო</p>
+          <h2 className="text-xl font-semibold text-primary-foreground mb-2">ყველა ძაღლი ნანახია!</h2>
+          <p className="text-primary-foreground/70 mb-6">შეგიძლია თავიდან დაიწყო ან ახალი ძაღლი დაამატო</p>
           <button
             onClick={handleReset}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"

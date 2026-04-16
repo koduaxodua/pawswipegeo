@@ -12,14 +12,14 @@ export default function Favorites() {
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-4xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Heart className="h-6 w-6 text-accent" fill="currentColor" />
-        <h1 className="text-2xl font-bold text-foreground">მოწონებული ძაღლები</h1>
+        <h1 className="text-2xl font-bold text-primary-foreground">მოწონებული ძაღლები</h1>
       </div>
 
       {likedDogs.length === 0 ? (
         <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center mt-12 max-w-md mx-auto">
           <span className="text-5xl mb-4">💔</span>
-          <h2 className="text-lg font-semibold text-foreground mb-2">ჯერ არაფერი მოგწონებია</h2>
-          <p className="text-muted-foreground text-sm">სვაიპე მარჯვნივ ან დააჭირე ❤️ რომ მოიწონო ძაღლი</p>
+          <h2 className="text-lg font-semibold text-primary-foreground mb-2">ჯერ არაფერი მოგწონებია</h2>
+          <p className="text-primary-foreground/70 text-sm">სვაიპე მარჯვნივ ან დააჭირე ❤️ რომ მოიწონო ძაღლი</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -35,8 +35,8 @@ export default function Favorites() {
                 className="h-20 w-20 rounded-xl object-cover flex-shrink-0"
               />
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-foreground">{dog.name}, {dog.age}</h3>
-                <div className="flex items-center gap-1 text-muted-foreground text-xs mt-0.5">
+                <h3 className="font-semibold text-primary-foreground">{dog.name}, {dog.age}</h3>
+                <div className="flex items-center gap-1 text-primary-foreground/70 text-xs mt-0.5">
                   <MapPin className="h-3 w-3" />
                   <span>{dog.location}</span>
                 </div>
@@ -51,7 +51,7 @@ export default function Favorites() {
               </div>
               <button
                 onClick={e => { e.stopPropagation(); unlikeDog(dog.id); }}
-                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                className="p-2 text-primary-foreground/70 hover:text-destructive transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

@@ -24,7 +24,7 @@ export function BottomNav() {
               className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-all duration-200 ${
                 isActive
                   ? 'text-primary scale-110'
-                  : 'text-muted-foreground hover:text-foreground'
+                  : 'text-primary-foreground/60 hover:text-primary-foreground'
               }`}
             >
               <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
