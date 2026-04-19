@@ -10,25 +10,37 @@ import type { Dog } from '@/data/dogs';
 
 export default function Index() {
   const { dogs } = useDogs();
-  const { likeDog, dislikeDog } = useLikedDogs();
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { likedDogs, dislikedDogs, likeDog, dislikeDog, resetDisliked } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
-  const currentDog = dogs[currentIndex];
-  const nextDog = dogs[currentIndex + 1];
+  const availableDogs = dogs.filter(
+    d =>
+      !likedDogs.some(l => l.id === d.id) &&
+      !dislikedDogs.some(s => s.id === d.id)
+  );
 
-  const handleSwipe = useCallback((direction: 'left' | 'right') => {
-    if (direction === 'right' && currentDog) {
-      likeDog(currentDog);
-      toast({ title: `${currentDog.name} მოწონებულია! ❤️` });
-    } else if (direction === 'left' && currentDog) {
-      dislikeDog(currentDog);
-    }
-    setCurrentIndex(prev => prev + 1);
-  }, [currentDog, likeDog, dislikeDog]);
+  const currentDog = availableDogs[0];
+  const nextDog = availableDogs[1];
 
-  const handleReset = () => setCurrentIndex(0);
-  const allSwiped = currentIndex >= dogs.length;
+  const handleSwipe = useCallback(
+    (direction: 'left' | 'right') => {
+      if (!currentDog) return;
+      if (direction === 'right') {
+        likeDog(currentDog);
+        toast({ title: `${currentDog.name} მოწონებულია! ❤️` });
+      } else {
+        dislikeDog(currentDog);
+      }
+    },
+    [currentDog, likeDog, dislikeDog]
+  );
+
+  const handleReset = () => {
+    resetDisliked();
+    toast({ title: 'გამოტოვებული ძაღლები დაბრუნდა 🔄' });
+  };
+
+  const allSwiped = availableDogs.length === 0;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-24 pt-4">
@@ -43,15 +55,24 @@ export default function Index() {
       {allSwiped ? (
         <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
           <span className="text-6xl mb-4">🐶</span>
-          <h2 className="text-xl font-semibold text-primary-foreground mb-2">ყველა ძაღლი ნანახია!</h2>
-          <p className="text-primary-foreground/70 mb-6">შეგიძლია თავიდან დაიწყო ან ახალი ძაღლი დაამატო</p>
-          <button
-            onClick={handleReset}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
-          >
-            <RotateCcw className="h-4 w-4" />
-            თავიდან დაწყება
-          </button>
+          <h2 className="text-xl font-semibold text-primary-foreground mb-2">
+            ყველა ძაღლი ნანახია!
+          </h2>
+          <p className="text-primary-foreground/70 mb-2 text-sm">
+            ❤️ მოწონებული: {likedDogs.length} · ✕ გამოტოვებული: {dislikedDogs.length}
+          </p>
+          <p className="text-primary-foreground/70 mb-6 text-sm">
+            შეგიძლია გამოტოვებულები დააბრუნო ან ახალი ძაღლი დაამატო
+          </p>
+          {dislikedDogs.length > 0 && (
+            <button
+              onClick={handleReset}
+              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
+            >
+              <RotateCcw className="h-4 w-4" />
+              გამოტოვებულების დაბრუნება
+            </button>
+          )}
         </div>
       ) : (
         <>
