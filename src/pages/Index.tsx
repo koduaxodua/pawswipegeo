@@ -2,16 +2,23 @@ import { useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
+import { AdBanner } from '@/components/AdBanner';
+import { MapSheet } from '@/components/MapSheet';
 import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
-import { Heart, X, RotateCcw } from 'lucide-react';
+import { Heart, X, RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { Dog } from '@/data/dogs';
+
+const AD_FREQUENCY = 5;
 
 export default function Index() {
   const { dogs } = useDogs();
   const { likedDogs, dislikedDogs, likeDog, dislikeDog, resetDisliked } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
+  const [swipeCount, setSwipeCount] = useState(0);
+  const [showAd, setShowAd] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   const availableDogs = dogs.filter(
     d =>
@@ -31,6 +38,13 @@ export default function Index() {
       } else {
         dislikeDog(currentDog);
       }
+      setSwipeCount(prev => {
+        const next = prev + 1;
+        if (next % AD_FREQUENCY === 0) {
+          setShowAd(true);
+        }
+        return next;
+      });
     },
     [currentDog, likeDog, dislikeDog]
   );
@@ -79,17 +93,23 @@ export default function Index() {
           {/* Card stack */}
           <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg aspect-[3/4]">
             <AnimatePresence>
-              {nextDog && (
-                <SwipeCard key={nextDog.id} dog={nextDog} onSwipe={() => {}} isTop={false} />
-              )}
-              {currentDog && (
-                <SwipeCard
-                  key={currentDog.id}
-                  dog={currentDog}
-                  onSwipe={handleSwipe}
-                  onTap={() => setSelectedDog(currentDog)}
-                  isTop={true}
-                />
+              {showAd ? (
+                <AdBanner key="ad" onDismiss={() => setShowAd(false)} />
+              ) : (
+                <>
+                  {nextDog && (
+                    <SwipeCard key={nextDog.id} dog={nextDog} onSwipe={() => {}} isTop={false} />
+                  )}
+                  {currentDog && (
+                    <SwipeCard
+                      key={currentDog.id}
+                      dog={currentDog}
+                      onSwipe={handleSwipe}
+                      onTap={() => setSelectedDog(currentDog)}
+                      isTop={true}
+                    />
+                  )}
+                </>
               )}
             </AnimatePresence>
           </div>
@@ -98,17 +118,31 @@ export default function Index() {
           <div className="flex items-center gap-6 mt-6">
             <button
               onClick={() => handleSwipe('left')}
-              className="glass h-14 w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95"
+              disabled={showAd}
+              className="glass h-14 w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="გამოტოვება"
             >
               <X className="h-7 w-7" />
             </button>
             <button
               onClick={() => handleSwipe('right')}
-              className="glass h-16 w-16 rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95"
+              disabled={showAd}
+              className="glass h-16 w-16 rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="მოწონება"
             >
               <Heart className="h-8 w-8" fill="currentColor" />
             </button>
           </div>
+
+          {/* Map capsule below action buttons */}
+          <button
+            onClick={() => setMapOpen(true)}
+            className="mt-4 glass inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-primary-foreground hover:scale-105 active:scale-95 transition-transform"
+            aria-label="რუკის ნახვა"
+          >
+            <Map className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">რუკა</span>
+          </button>
         </>
       )}
 
@@ -119,6 +153,13 @@ export default function Index() {
           onOpenChange={open => !open && setSelectedDog(null)}
         />
       )}
+
+      <MapSheet
+        open={mapOpen}
+        onOpenChange={setMapOpen}
+        currentDog={currentDog ?? null}
+        allDogs={dogs}
+      />
     </div>
   );
 }
