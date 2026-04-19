@@ -24,7 +24,7 @@ export default function Favorites() {
           </TabsTrigger>
           <TabsTrigger value="disliked" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground text-primary-foreground">
             <X className="h-4 w-4 mr-1.5" />
-            დაწუნებული ({dislikedDogs.length})
+            გამოტოვებული ({dislikedDogs.length})
           </TabsTrigger>
         </TabsList>
 
@@ -50,7 +50,7 @@ export default function Favorites() {
           {dislikedDogs.length === 0 ? (
             <EmptyState
               emoji="🐶"
-              title="არცერთი ძაღლი არ დაგიწუნებია"
+              title="არცერთი ძაღლი არ გამოგიტოვებია"
               subtitle="აქ აისახება ის ძაღლები, რომლებსაც მარცხნივ სვაიპავ"
             />
           ) : (
