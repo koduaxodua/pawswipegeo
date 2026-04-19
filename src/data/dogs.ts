@@ -7,6 +7,8 @@ export interface Dog {
   personality: string;
   health: string;
   location: string;
+  lat?: number;
+  lng?: number;
   photo: string;
   caretakerPhone: string;
   caretakerName: string;
@@ -23,7 +25,9 @@ export const sampleDogs: Dog[] = [
     gender: 'მამრობითი',
     personality: 'მეგობრული, ენერგიული, უყვარს სირბილი',
     health: 'აცრილი, სტერილიზებული, ჯანმრთელი',
-    location: 'ვაკე, თბილისი',
+    location: 'ვაკის პარკი, თბილისი',
+    lat: 41.7099,
+    lng: 44.7641,
     photo: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=600&h=800&fit=crop',
     caretakerPhone: '+995 555 12 34 56',
     caretakerName: 'ნინო',
@@ -39,6 +43,8 @@ export const sampleDogs: Dog[] = [
     personality: 'მშვიდი, ერთგული, დამცველი',
     health: 'აცრილი, სტერილიზებული, ჯანმრთელი',
     location: 'საბურთალო, თბილისი',
+    lat: 41.7250,
+    lng: 44.7400,
     photo: 'https://images.unsplash.com/photo-1551717743-49959800b1f6?w=600&h=800&fit=crop',
     caretakerPhone: '+995 577 98 76 54',
     caretakerName: 'გიორგი',
@@ -53,7 +59,9 @@ export const sampleDogs: Dog[] = [
     gender: 'მამრობითი',
     personality: 'თავგადასავლის მოყვარული, სათამაშო',
     health: 'აცრილი, ჯანმრთელი',
-    location: 'დიდუბე, თბილისი',
+    location: 'დიდუბის მეტრო, თბილისი',
+    lat: 41.7470,
+    lng: 44.7900,
     photo: 'https://images.unsplash.com/photo-1568572933382-74d440642117?w=600&h=800&fit=crop',
     caretakerPhone: '+995 599 11 22 33',
     caretakerName: 'მარიამ',
@@ -69,6 +77,8 @@ export const sampleDogs: Dog[] = [
     personality: 'ცნობისმოყვარე, სანდო, მოფერება უყვარს',
     health: 'აცრილი, სტერილიზებული, ჯანმრთელი',
     location: 'ისანი, თბილისი',
+    lat: 41.6850,
+    lng: 44.8250,
     photo: 'https://images.unsplash.com/photo-1530281700549-e82e7bf110d6?w=600&h=800&fit=crop',
     caretakerPhone: '+995 551 44 55 66',
     caretakerName: 'ლევანი',
@@ -83,7 +93,9 @@ export const sampleDogs: Dog[] = [
     gender: 'მამრობითი',
     personality: 'დამცველი, ერთგული, მამაცი',
     health: 'აცრილი, ჯანმრთელი, მცირე ნაწიბური წინა ფეხზე',
-    location: 'გლდანი, თბილისი',
+    location: 'გლდანი, მე-9 მკრ, თბილისი',
+    lat: 41.7800,
+    lng: 44.8150,
     photo: 'https://images.unsplash.com/photo-1477884213360-7e9d7dcc8f9b?w=600&h=800&fit=crop',
     caretakerPhone: '+995 598 77 88 99',
     caretakerName: 'დავითი',
@@ -99,6 +111,8 @@ export const sampleDogs: Dog[] = [
     personality: 'ნაზი, მორჩილი, ბავშვების მოყვარული',
     health: 'აცრილი, სტერილიზებული, ჯანმრთელი',
     location: 'ნაძალადევი, თბილისი',
+    lat: 41.7600,
+    lng: 44.8000,
     photo: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?w=600&h=800&fit=crop',
     caretakerPhone: '+995 557 33 22 11',
     caretakerName: 'ანა',
@@ -113,7 +127,9 @@ export const sampleDogs: Dog[] = [
     gender: 'მამრობითი',
     personality: 'ხალისიანი, სწრაფად სწავლობს, სათამაშო',
     health: 'აცრილი, ჯანმრთელი',
-    location: 'ვარკეთილი, თბილისი',
+    location: 'ვარკეთილი III მასივი, თბილისი',
+    lat: 41.6700,
+    lng: 44.8700,
     photo: 'https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?w=600&h=800&fit=crop',
     caretakerPhone: '+995 593 55 44 33',
     caretakerName: 'თამარი',

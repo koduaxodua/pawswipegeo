@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Dog } from '@/data/dogs';
-import { DEFAULT_CENTER, locationToCoords } from '@/data/locations';
+import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
 import { MapPin } from 'lucide-react';
 
 // Fix default marker icons
@@ -74,7 +74,7 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetPr
     const timer = setTimeout(() => {
       if (!containerRef.current) return;
 
-      const currentCoords = currentDog ? locationToCoords(currentDog.location) : null;
+      const currentCoords = currentDog ? getDogCoords(currentDog) : null;
       const center = userLocation ?? currentCoords ?? DEFAULT_CENTER;
 
       if (!mapRef.current) {
@@ -113,7 +113,7 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetPr
       allDogs
         .filter(d => d.id !== currentDog?.id)
         .forEach(dog => {
-          const coords = locationToCoords(dog.location);
+          const coords = getDogCoords(dog);
           L.marker(coords, { icon: dogIcon })
             .addTo(map)
             .bindPopup(`<b>${dog.name}</b><br/>${dog.breed}<br/>${dog.location}`);
