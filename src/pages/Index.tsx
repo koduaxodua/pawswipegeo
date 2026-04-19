@@ -4,15 +4,13 @@ import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
-import { useTheme } from '@/hooks/useTheme';
-import { Heart, X, RotateCcw, Moon, Sun } from 'lucide-react';
+import { Heart, X, RotateCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import type { Dog } from '@/data/dogs';
 
 export default function Index() {
   const { dogs } = useDogs();
-  const { likeDog } = useLikedDogs();
-  const { isDark, toggle: toggleTheme } = useTheme();
+  const { likeDog, dislikeDog } = useLikedDogs();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
@@ -23,9 +21,11 @@ export default function Index() {
     if (direction === 'right' && currentDog) {
       likeDog(currentDog);
       toast({ title: `${currentDog.name} მოწონებულია! ❤️` });
+    } else if (direction === 'left' && currentDog) {
+      dislikeDog(currentDog);
     }
     setCurrentIndex(prev => prev + 1);
-  }, [currentDog, likeDog]);
+  }, [currentDog, likeDog, dislikeDog]);
 
   const handleReset = () => setCurrentIndex(0);
   const allSwiped = currentIndex >= dogs.length;
@@ -33,18 +33,11 @@ export default function Index() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-24 pt-4">
       {/* Header */}
-      <div className="flex items-center justify-between w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
+      <div className="flex items-center justify-center w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl">🐾</span>
           <h1 className="text-2xl font-bold text-primary-foreground">PawSwipe</h1>
         </div>
-        <button
-          onClick={toggleTheme}
-          className="glass h-10 w-10 rounded-full flex items-center justify-center transition-colors text-primary-foreground"
-          aria-label="თემის შეცვლა"
-        >
-          {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
       </div>
 
       {allSwiped ? (
