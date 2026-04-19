@@ -150,6 +150,40 @@ export default function AddDog() {
           )}
         </div>
 
+        {/* Map coordinates */}
+        <div className="glass rounded-2xl p-4">
+          <label className="block text-sm font-medium text-primary-foreground mb-2 flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-primary" />
+            ზუსტი კოორდინატები რუკისთვის
+          </label>
+          <input
+            value={coordsInput}
+            onChange={e => setCoordsInput(e.target.value)}
+            placeholder="ჩასვი Google Maps ლინკი ან &quot;41.7099, 44.7641&quot;"
+            className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none border-b border-border/50 pb-1.5"
+          />
+          <div className="mt-2 flex items-center justify-between gap-2 text-xs">
+            {parsedCoords ? (
+              <span className="inline-flex items-center gap-1 text-primary">
+                <Check className="h-3 w-3" />
+                აღმოჩენილია: {parsedCoords.lat.toFixed(4)}, {parsedCoords.lng.toFixed(4)}
+              </span>
+            ) : coordsInput ? (
+              <span className="text-destructive">ვერ ამოვიცანი — ჩასვი Google Maps ლინკი ან "lat, lng"</span>
+            ) : (
+              <a
+                href="https://www.google.com/maps"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-foreground/60 hover:text-primary underline"
+              >
+                გახსენი Google Maps →
+              </a>
+            )}
+            <span className="text-primary-foreground/40">არასავალდებულო</span>
+          </div>
+        </div>
+
         {/* Two-column grid on tablet+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField label="სახელი *" value={form.name} onChange={v => update('name', v)} placeholder="მაგ: ბობი" />
