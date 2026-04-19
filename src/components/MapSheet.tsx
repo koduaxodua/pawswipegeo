@@ -1,39 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 import type { Dog } from '@/data/dogs';
 import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
-import { MapPin } from 'lucide-react';
-
-// Fix default marker icons
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
-
-const dogIcon = L.divIcon({
-  html: `<div style="background:hsl(24 80% 55%);width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4);font-size:18px;">🐶</div>`,
-  className: '',
-  iconSize: [36, 36],
-  iconAnchor: [18, 18],
-});
-
-const currentDogIcon = L.divIcon({
-  html: `<div style="background:hsl(340 60% 60%);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:3px solid white;box-shadow:0 4px 16px rgba(0,0,0,0.5);font-size:22px;">⭐</div>`,
-  className: '',
-  iconSize: [44, 44],
-  iconAnchor: [22, 22],
-});
-
-const userIcon = L.divIcon({
-  html: `<div style="background:#3b82f6;width:20px;height:20px;border-radius:50%;border:4px solid white;box-shadow:0 0 0 4px rgba(59,130,246,0.3);"></div>`,
-  className: '',
-  iconSize: [20, 20],
-  iconAnchor: [10, 10],
-});
+import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 
 interface MapSheetProps {
   open: boolean;
@@ -43,12 +12,10 @@ interface MapSheetProps {
 }
 
 export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<L.Map | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [locating, setLocating] = useState(false);
+  const [selected, setSelected] = useState<Dog | null>(null);
 
-  // Geolocation
   useEffect(() => {
     if (!open || userLocation) return;
     setLocating(true);
@@ -66,84 +33,34 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetPr
     );
   }, [open, userLocation]);
 
-  // Initialize / update map
   useEffect(() => {
-    if (!open || !containerRef.current) return;
+    if (open && currentDog) setSelected(currentDog);
+  }, [open, currentDog]);
 
-    // Slight delay to ensure container has dimensions inside Sheet
-    const timer = setTimeout(() => {
-      if (!containerRef.current) return;
+  // Determine map focus point: selected dog > current dog > user > default
+  const focusCoords: [number, number] = selected
+    ? getDogCoords(selected)
+    : currentDog
+    ? getDogCoords(currentDog)
+    : userLocation ?? DEFAULT_CENTER;
 
-      const currentCoords = currentDog ? getDogCoords(currentDog) : null;
-      const center = userLocation ?? currentCoords ?? DEFAULT_CENTER;
+  const [lat, lng] = focusCoords;
 
-      if (!mapRef.current) {
-        mapRef.current = L.map(containerRef.current, {
-          center,
-          zoom: 12,
-          scrollWheelZoom: true,
-        });
+  // OpenStreetMap embed via iframe — no API key required, reliable tile loading
+  // bbox: roughly ±0.05° around the focus point (covers most of Tbilisi when zoomed)
+  const bboxDelta = 0.05;
+  const bbox = `${lng - bboxDelta},${lat - bboxDelta},${lng + bboxDelta},${lat + bboxDelta}`;
+  const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        }).addTo(mapRef.current);
-      }
-
-      const map = mapRef.current;
-
-      // Clear existing markers
-      map.eachLayer(layer => {
-        if (layer instanceof L.Marker) map.removeLayer(layer);
-      });
-
-      const points: L.LatLngTuple[] = [];
-
-      if (userLocation) {
-        L.marker(userLocation, { icon: userIcon }).addTo(map).bindPopup('📍 შენ აქ ხარ');
-        points.push(userLocation);
-      }
-
-      if (currentCoords && currentDog) {
-        L.marker(currentCoords, { icon: currentDogIcon })
-          .addTo(map)
-          .bindPopup(`<b>⭐ ${currentDog.name}</b><br/>${currentDog.location}`);
-        points.push(currentCoords);
-      }
-
-      allDogs
-        .filter(d => d.id !== currentDog?.id)
-        .forEach(dog => {
-          const coords = getDogCoords(dog);
-          L.marker(coords, { icon: dogIcon })
-            .addTo(map)
-            .bindPopup(`<b>${dog.name}</b><br/>${dog.breed}<br/>${dog.location}`);
-          points.push(coords);
-        });
-
-      if (points.length > 1) {
-        map.fitBounds(L.latLngBounds(points), { padding: [40, 40], maxZoom: 14 });
-      } else if (points.length === 1) {
-        map.setView(points[0], 13);
-      }
-
-      map.invalidateSize();
-    }, 200);
-
-    return () => clearTimeout(timer);
-  }, [open, currentDog, allDogs, userLocation]);
-
-  // Cleanup on close
-  useEffect(() => {
-    if (!open && mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
-    }
-  }, [open]);
+  // Build Google Maps "Directions" link from user → focus point
+  const directionsUrl = userLocation
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${lat},${lng}`
+    : `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] p-0 glass-strong border-t border-border">
-        <SheetHeader className="p-4 pb-2">
+      <SheetContent side="bottom" className="h-[90vh] p-0 glass-strong border-t border-border flex flex-col">
+        <SheetHeader className="p-4 pb-2 flex-shrink-0">
           <SheetTitle className="flex items-center gap-2 text-primary-foreground">
             <MapPin className="h-5 w-5 text-primary" />
             ძაღლები რუკაზე
@@ -155,7 +72,75 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetPr
           </SheetTitle>
         </SheetHeader>
 
-        <div ref={containerRef} className="h-[calc(85vh-80px)] w-full" />
+        {/* Map iframe (OpenStreetMap embed) */}
+        <div className="flex-1 relative overflow-hidden bg-secondary">
+          <iframe
+            key={`${lat}-${lng}`}
+            title="რუკა"
+            src={osmUrl}
+            className="w-full h-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          <a
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-primary text-primary-foreground px-3 py-2 rounded-full text-xs font-medium shadow-lg hover:opacity-90 transition"
+          >
+            <Navigation className="h-3.5 w-3.5" />
+            Google Maps-ში გახსნა
+            <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+
+        {/* Dog list — tap to focus on the map */}
+        <div className="flex-shrink-0 max-h-[35%] overflow-y-auto border-t border-border/50 bg-background/80 backdrop-blur">
+          <div className="p-3 space-y-2">
+            {userLocation && (
+              <div className="flex items-center gap-2 text-xs text-primary-foreground/60 px-2">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500" />
+                შენი მდებარეობა: {userLocation[0].toFixed(4)}, {userLocation[1].toFixed(4)}
+              </div>
+            )}
+            {allDogs.map(dog => {
+              const isSelected = selected?.id === dog.id;
+              const isCurrent = currentDog?.id === dog.id;
+              const [dLat, dLng] = getDogCoords(dog);
+              return (
+                <button
+                  key={dog.id}
+                  onClick={() => setSelected(dog)}
+                  className={`w-full flex items-center gap-3 p-2 rounded-xl text-left transition ${
+                    isSelected
+                      ? 'bg-primary/20 border border-primary/40'
+                      : 'hover:bg-secondary/50 border border-transparent'
+                  }`}
+                >
+                  <img
+                    src={dog.photo}
+                    alt={dog.name}
+                    className="h-10 w-10 rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-medium text-sm text-primary-foreground truncate">
+                        {isCurrent && '⭐ '}{dog.name}
+                      </span>
+                    </div>
+                    <div className="text-xs text-primary-foreground/60 truncate">
+                      {dog.location}
+                    </div>
+                    <div className="text-[10px] text-primary-foreground/40 font-mono">
+                      {dLat.toFixed(4)}, {dLng.toFixed(4)}
+                    </div>
+                  </div>
+                  <MapPin className={`h-4 w-4 flex-shrink-0 ${isSelected ? 'text-primary' : 'text-primary-foreground/40'}`} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );
