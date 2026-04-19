@@ -88,7 +88,12 @@ export default function AddDog() {
       toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები', variant: 'destructive' });
       return;
     }
-    addDog(form);
+    const dogToAdd = {
+      ...form,
+      lat: parsedCoords?.lat ?? form.lat,
+      lng: parsedCoords?.lng ?? form.lng,
+    };
+    addDog(dogToAdd);
     toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
     navigate('/');
   };
