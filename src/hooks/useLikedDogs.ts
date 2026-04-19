@@ -55,9 +55,13 @@ export function useLikedDogs() {
     setDislikedDogs(prev => prev.filter(d => d.id !== dogId));
   }, []);
 
+  const resetDisliked = useCallback(() => {
+    setDislikedDogs([]);
+  }, []);
+
   const isLiked = useCallback((dogId: string) => {
     return likedDogs.some(d => d.id === dogId);
   }, [likedDogs]);
 
-  return { likedDogs, dislikedDogs, likeDog, dislikeDog, unlikeDog, removeDisliked, isLiked };
+  return { likedDogs, dislikedDogs, likeDog, dislikeDog, unlikeDog, removeDisliked, resetDisliked, isLiked };
 }

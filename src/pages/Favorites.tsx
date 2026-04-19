@@ -6,7 +6,7 @@ import { MapPin, Phone, Trash2, Heart, X, RotateCcw } from 'lucide-react';
 import type { Dog } from '@/data/dogs';
 
 export default function Favorites() {
-  const { likedDogs, dislikedDogs, unlikeDog, removeDisliked, likeDog } = useLikedDogs();
+  const { likedDogs, dislikedDogs, unlikeDog, removeDisliked, likeDog, dislikeDog } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   return (
@@ -40,7 +40,10 @@ export default function Favorites() {
               dogs={likedDogs}
               onSelect={setSelectedDog}
               onAction={unlikeDog}
+              onSecondary={(dog) => dislikeDog(dog)}
               actionIcon={<Trash2 className="h-4 w-4" />}
+              secondaryIcon={<X className="h-4 w-4" />}
+              secondaryLabel="გადატანა გამოტოვებულებში"
               showPhone
             />
           )}
@@ -60,7 +63,8 @@ export default function Favorites() {
               onAction={removeDisliked}
               onSecondary={(dog) => likeDog(dog)}
               actionIcon={<Trash2 className="h-4 w-4" />}
-              secondaryIcon={<RotateCcw className="h-4 w-4" />}
+              secondaryIcon={<Heart className="h-4 w-4" fill="currentColor" />}
+              secondaryLabel="გადატანა მოწონებულებში"
             />
           )}
         </TabsContent>
@@ -94,10 +98,11 @@ interface DogListProps {
   onSecondary?: (dog: Dog) => void;
   actionIcon: React.ReactNode;
   secondaryIcon?: React.ReactNode;
+  secondaryLabel?: string;
   showPhone?: boolean;
 }
 
-function DogList({ dogs, onSelect, onAction, onSecondary, actionIcon, secondaryIcon, showPhone }: DogListProps) {
+function DogList({ dogs, onSelect, onAction, onSecondary, actionIcon, secondaryIcon, secondaryLabel, showPhone }: DogListProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {dogs.map(dog => (
@@ -133,7 +138,7 @@ function DogList({ dogs, onSelect, onAction, onSecondary, actionIcon, secondaryI
               <button
                 onClick={e => { e.stopPropagation(); onSecondary(dog); }}
                 className="p-2 text-primary-foreground/70 hover:text-accent transition-colors"
-                aria-label="გადატანა მოწონებულებში"
+                aria-label={secondaryLabel ?? 'მოქმედება'}
               >
                 {secondaryIcon}
               </button>
