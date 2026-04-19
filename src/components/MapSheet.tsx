@@ -3,7 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Dog } from '@/data/dogs';
-import { DEFAULT_CENTER, locationToCoords } from '@/data/locations';
+import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
 import { MapPin } from 'lucide-react';
 
 // Fix default marker icons
