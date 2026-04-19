@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
+import { Plus, PawPrint, Upload, Loader2, MapPin, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { parseCoordinates } from '@/data/locations';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -35,6 +36,7 @@ export default function AddDog() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [coordsInput, setCoordsInput] = useState('');
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -43,11 +45,15 @@ export default function AddDog() {
     personality: '',
     health: '',
     location: '',
+    lat: undefined as number | undefined,
+    lng: undefined as number | undefined,
     photo: '',
     caretakerPhone: '',
     caretakerName: '',
     description: '',
   });
+
+  const parsedCoords = parseCoordinates(coordsInput);
 
   const update = (key: string, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
