@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint, Upload, Loader2, MapPin, Check } from 'lucide-react';
+import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { parseCoordinates } from '@/data/locations';
+import { LocationPicker } from '@/components/LocationPicker';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -36,7 +36,6 @@ export default function AddDog() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [coordsInput, setCoordsInput] = useState('');
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -52,8 +51,6 @@ export default function AddDog() {
     caretakerName: '',
     description: '',
   });
-
-  const parsedCoords = parseCoordinates(coordsInput);
 
   const update = (key: string, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -85,15 +82,10 @@ export default function AddDog() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.photo || !form.caretakerPhone || !form.location) {
-      toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები', variant: 'destructive' });
+      toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები და აირჩიე ლოკაცია რუკაზე', variant: 'destructive' });
       return;
     }
-    const dogToAdd = {
-      ...form,
-      lat: parsedCoords?.lat ?? form.lat,
-      lng: parsedCoords?.lng ?? form.lng,
-    };
-    addDog(dogToAdd);
+    addDog(form);
     toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
     navigate('/');
   };
