@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, LocateFixed, Loader2, Check, Search, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
