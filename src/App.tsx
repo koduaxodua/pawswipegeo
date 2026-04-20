@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import Index from "./pages/Index";
 import Favorites from "./pages/Favorites";
 import AddDog from "./pages/AddDog";
+import Missions from "./pages/Missions";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/add" element={<AddDog />} />
+          <Route path="/missions" element={<Missions />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
