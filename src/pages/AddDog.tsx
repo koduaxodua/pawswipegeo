@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint, Upload, Loader2, MapPin, Check } from 'lucide-react';
+import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { parseCoordinates } from '@/data/locations';
+import { LocationPicker } from '@/components/LocationPicker';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -36,7 +36,6 @@ export default function AddDog() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  const [coordsInput, setCoordsInput] = useState('');
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -52,8 +51,6 @@ export default function AddDog() {
     caretakerName: '',
     description: '',
   });
-
-  const parsedCoords = parseCoordinates(coordsInput);
 
   const update = (key: string, value: string) =>
     setForm(prev => ({ ...prev, [key]: value }));
@@ -85,15 +82,10 @@ export default function AddDog() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.photo || !form.caretakerPhone || !form.location) {
-      toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები', variant: 'destructive' });
+      toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები და აირჩიე ლოკაცია რუკაზე', variant: 'destructive' });
       return;
     }
-    const dogToAdd = {
-      ...form,
-      lat: parsedCoords?.lat ?? form.lat,
-      lng: parsedCoords?.lng ?? form.lng,
-    };
-    addDog(dogToAdd);
+    addDog(form);
     toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
     navigate('/');
   };
@@ -150,46 +142,22 @@ export default function AddDog() {
           )}
         </div>
 
-        {/* Map coordinates */}
-        <div className="glass rounded-2xl p-4">
-          <label className="block text-sm font-medium text-primary-foreground mb-2 flex items-center gap-1.5">
-            <MapPin className="h-4 w-4 text-primary" />
-            ზუსტი კოორდინატები რუკისთვის
-          </label>
-          <input
-            value={coordsInput}
-            onChange={e => setCoordsInput(e.target.value)}
-            placeholder="ჩასვი Google Maps ლინკი ან &quot;41.7099, 44.7641&quot;"
-            className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none border-b border-border/50 pb-1.5"
-          />
-          <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-            {parsedCoords ? (
-              <span className="inline-flex items-center gap-1 text-primary">
-                <Check className="h-3 w-3" />
-                აღმოჩენილია: {parsedCoords.lat.toFixed(4)}, {parsedCoords.lng.toFixed(4)}
-              </span>
-            ) : coordsInput ? (
-              <span className="text-destructive">ვერ ამოვიცანი — ჩასვი Google Maps ლინკი ან "lat, lng"</span>
-            ) : (
-              <a
-                href="https://www.google.com/maps"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary-foreground/60 hover:text-primary underline"
-              >
-                გახსენი Google Maps →
-              </a>
-            )}
-            <span className="text-primary-foreground/40">არასავალდებულო</span>
-          </div>
-        </div>
+
+        {/* Location picker — current GPS or autocomplete search */}
+        <LocationPicker
+          lat={form.lat}
+          lng={form.lng}
+          locationLabel={form.location}
+          onChange={({ lat, lng, label }) =>
+            setForm(prev => ({ ...prev, lat, lng, location: label }))
+          }
+        />
 
         {/* Two-column grid on tablet+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField label="სახელი *" value={form.name} onChange={v => update('name', v)} placeholder="მაგ: ბობი" />
           <FormField label="ასაკი" value={form.age} onChange={v => update('age', v)} placeholder="მაგ: 2 წელი" />
           <FormField label="ჯიში" value={form.breed} onChange={v => update('breed', v)} placeholder="მაგ: ნარევი" />
-          <FormField label="ლოკაცია *" value={form.location} onChange={v => update('location', v)} placeholder="მაგ: ვაკე, თბილისი" />
         </div>
 
         <div className="glass rounded-2xl p-4">
