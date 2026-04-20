@@ -9,12 +9,29 @@ interface NominatimResult {
   lon: string;
   type?: string;
   address?: {
+    house_number?: string;
+    road?: string;
     suburb?: string;
     neighbourhood?: string;
+    quarter?: string;
     city?: string;
     town?: string;
-    road?: string;
+    village?: string;
   };
+}
+
+/** Build a compact, street-level label preferring house number → road → suburb → city. */
+function buildShortLabel(r: { display_name: string; address?: NominatimResult['address'] }): string {
+  const a = r.address ?? {};
+  const street = a.road
+    ? a.house_number
+      ? `${a.road} ${a.house_number}`
+      : a.road
+    : a.neighbourhood || a.quarter || a.suburb;
+  const area = a.city || a.town || a.village;
+  const parts = [street, area].filter(Boolean);
+  if (parts.length) return parts.join(', ');
+  return r.display_name.split(',').slice(0, 2).join(',').trim();
 }
 
 interface LocationPickerProps {
@@ -89,20 +106,19 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     navigator.geolocation.getCurrentPosition(
       async pos => {
         const { latitude, longitude } = pos.coords;
-        // Reverse geocode for human label
         let label = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         try {
           const url = new URL('https://nominatim.openstreetmap.org/reverse');
           url.searchParams.set('lat', String(latitude));
           url.searchParams.set('lon', String(longitude));
           url.searchParams.set('format', 'json');
+          url.searchParams.set('addressdetails', '1');
+          url.searchParams.set('zoom', '18'); // building-level precision
           url.searchParams.set('accept-language', 'ka,en');
           const res = await fetch(url.toString());
           if (res.ok) {
             const data = await res.json();
-            const a = data.address ?? {};
-            const parts = [a.suburb || a.neighbourhood || a.road, a.city || a.town].filter(Boolean);
-            if (parts.length) label = parts.join(', ');
+            label = buildShortLabel(data);
           }
         } catch {
           // keep coord label
@@ -126,10 +142,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   };
 
   const handlePickResult = (r: NominatimResult) => {
-    const a = r.address ?? {};
-    const shortLabel =
-      [a.suburb || a.neighbourhood || a.road, a.city || a.town].filter(Boolean).join(', ') ||
-      r.display_name.split(',').slice(0, 2).join(',').trim();
+    const shortLabel = buildShortLabel(r);
     onChange({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: shortLabel });
     setQuery(shortLabel);
     setShowResults(false);
