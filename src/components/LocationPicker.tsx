@@ -214,8 +214,8 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
       <div className="text-center text-xs text-primary-foreground/40">ან მოძებნე მისამართი</div>
 
-      {/* Search input with autocomplete */}
-      <div className="relative">
+      {/* Search input with autocomplete (dropdown rendered in a portal to escape stacking contexts) */}
+      <div ref={inputWrapRef} className="relative">
         <div className="flex items-center gap-2 border-b border-border/50 pb-1.5">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <input
@@ -236,27 +236,37 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
             </button>
           )}
         </div>
-
-        {showResults && results.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-2 glass-strong rounded-xl border border-border max-h-64 overflow-y-auto shadow-lg">
-            {results.map(r => (
-              <button
-                key={r.place_id}
-                type="button"
-                onClick={() => handlePickResult(r)}
-                className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
-              >
-                <div className="text-sm text-primary-foreground line-clamp-1">
-                  {r.display_name.split(',').slice(0, 2).join(', ')}
-                </div>
-                <div className="text-xs text-primary-foreground/50 line-clamp-1">
-                  {r.display_name}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {showResults && results.length > 0 && dropdownRect && createPortal(
+        <div
+          data-location-dropdown
+          className="fixed glass-strong rounded-xl border border-border max-h-64 overflow-y-auto shadow-2xl"
+          style={{
+            top: dropdownRect.top,
+            left: dropdownRect.left,
+            width: dropdownRect.width,
+            zIndex: 9999,
+          }}
+        >
+          {results.map(r => (
+            <button
+              key={r.place_id}
+              type="button"
+              onClick={() => handlePickResult(r)}
+              className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
+            >
+              <div className="text-sm text-primary-foreground line-clamp-1">
+                {r.display_name.split(',').slice(0, 2).join(', ')}
+              </div>
+              <div className="text-xs text-primary-foreground/50 line-clamp-1">
+                {r.display_name}
+              </div>
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       {hasCoords && (
         <div className="flex items-center gap-1.5 text-xs text-primary">
