@@ -55,7 +55,41 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
+
+  // Position the portal dropdown right under the input, in viewport coords
+  useLayoutEffect(() => {
+    if (!showResults || !inputWrapRef.current) return;
+    const updateRect = () => {
+      const r = inputWrapRef.current!.getBoundingClientRect();
+      setDropdownRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    updateRect();
+    window.addEventListener('scroll', updateRect, true);
+    window.addEventListener('resize', updateRect);
+    return () => {
+      window.removeEventListener('scroll', updateRect, true);
+      window.removeEventListener('resize', updateRect);
+    };
+  }, [showResults, results.length]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!showResults) return;
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (inputWrapRef.current && !inputWrapRef.current.contains(target)) {
+        // Allow clicks inside the portal dropdown — they have data attribute
+        if (!(target instanceof HTMLElement && target.closest('[data-location-dropdown]'))) {
+          setShowResults(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [showResults]);
 
   // Keep input in sync if parent label changes (e.g. via GPS button)
   useEffect(() => {
