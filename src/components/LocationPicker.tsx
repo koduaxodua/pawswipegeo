@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MapPin, LocateFixed, Loader2, Check, Search, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -9,12 +10,29 @@ interface NominatimResult {
   lon: string;
   type?: string;
   address?: {
+    house_number?: string;
+    road?: string;
     suburb?: string;
     neighbourhood?: string;
+    quarter?: string;
     city?: string;
     town?: string;
-    road?: string;
+    village?: string;
   };
+}
+
+/** Build a compact, street-level label preferring house number → road → suburb → city. */
+function buildShortLabel(r: { display_name: string; address?: NominatimResult['address'] }): string {
+  const a = r.address ?? {};
+  const street = a.road
+    ? a.house_number
+      ? `${a.road} ${a.house_number}`
+      : a.road
+    : a.neighbourhood || a.quarter || a.suburb;
+  const area = a.city || a.town || a.village;
+  const parts = [street, area].filter(Boolean);
+  if (parts.length) return parts.join(', ');
+  return r.display_name.split(',').slice(0, 2).join(',').trim();
 }
 
 interface LocationPickerProps {
@@ -37,7 +55,41 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<number | null>(null);
+  const inputWrapRef = useRef<HTMLDivElement>(null);
+
+  // Position the portal dropdown right under the input, in viewport coords
+  useLayoutEffect(() => {
+    if (!showResults || !inputWrapRef.current) return;
+    const updateRect = () => {
+      const r = inputWrapRef.current!.getBoundingClientRect();
+      setDropdownRect({ top: r.bottom + 4, left: r.left, width: r.width });
+    };
+    updateRect();
+    window.addEventListener('scroll', updateRect, true);
+    window.addEventListener('resize', updateRect);
+    return () => {
+      window.removeEventListener('scroll', updateRect, true);
+      window.removeEventListener('resize', updateRect);
+    };
+  }, [showResults, results.length]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!showResults) return;
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (inputWrapRef.current && !inputWrapRef.current.contains(target)) {
+        // Allow clicks inside the portal dropdown — they have data attribute
+        if (!(target instanceof HTMLElement && target.closest('[data-location-dropdown]'))) {
+          setShowResults(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', onDocClick);
+    return () => document.removeEventListener('mousedown', onDocClick);
+  }, [showResults]);
 
   // Keep input in sync if parent label changes (e.g. via GPS button)
   useEffect(() => {
@@ -89,20 +141,19 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     navigator.geolocation.getCurrentPosition(
       async pos => {
         const { latitude, longitude } = pos.coords;
-        // Reverse geocode for human label
         let label = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
         try {
           const url = new URL('https://nominatim.openstreetmap.org/reverse');
           url.searchParams.set('lat', String(latitude));
           url.searchParams.set('lon', String(longitude));
           url.searchParams.set('format', 'json');
+          url.searchParams.set('addressdetails', '1');
+          url.searchParams.set('zoom', '18'); // building-level precision
           url.searchParams.set('accept-language', 'ka,en');
           const res = await fetch(url.toString());
           if (res.ok) {
             const data = await res.json();
-            const a = data.address ?? {};
-            const parts = [a.suburb || a.neighbourhood || a.road, a.city || a.town].filter(Boolean);
-            if (parts.length) label = parts.join(', ');
+            label = buildShortLabel(data);
           }
         } catch {
           // keep coord label
@@ -126,10 +177,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   };
 
   const handlePickResult = (r: NominatimResult) => {
-    const a = r.address ?? {};
-    const shortLabel =
-      [a.suburb || a.neighbourhood || a.road, a.city || a.town].filter(Boolean).join(', ') ||
-      r.display_name.split(',').slice(0, 2).join(',').trim();
+    const shortLabel = buildShortLabel(r);
     onChange({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: shortLabel });
     setQuery(shortLabel);
     setShowResults(false);
@@ -166,8 +214,8 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
       <div className="text-center text-xs text-primary-foreground/40">ან მოძებნე მისამართი</div>
 
-      {/* Search input with autocomplete */}
-      <div className="relative">
+      {/* Search input with autocomplete (dropdown rendered in a portal to escape stacking contexts) */}
+      <div ref={inputWrapRef} className="relative">
         <div className="flex items-center gap-2 border-b border-border/50 pb-1.5">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <input
@@ -188,27 +236,37 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
             </button>
           )}
         </div>
-
-        {showResults && results.length > 0 && (
-          <div className="absolute z-20 left-0 right-0 mt-2 glass-strong rounded-xl border border-border max-h-64 overflow-y-auto shadow-lg">
-            {results.map(r => (
-              <button
-                key={r.place_id}
-                type="button"
-                onClick={() => handlePickResult(r)}
-                className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
-              >
-                <div className="text-sm text-primary-foreground line-clamp-1">
-                  {r.display_name.split(',').slice(0, 2).join(', ')}
-                </div>
-                <div className="text-xs text-primary-foreground/50 line-clamp-1">
-                  {r.display_name}
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {showResults && results.length > 0 && dropdownRect && createPortal(
+        <div
+          data-location-dropdown
+          className="fixed glass-strong rounded-xl border border-border max-h-64 overflow-y-auto shadow-2xl"
+          style={{
+            top: dropdownRect.top,
+            left: dropdownRect.left,
+            width: dropdownRect.width,
+            zIndex: 9999,
+          }}
+        >
+          {results.map(r => (
+            <button
+              key={r.place_id}
+              type="button"
+              onClick={() => handlePickResult(r)}
+              className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
+            >
+              <div className="text-sm text-primary-foreground line-clamp-1">
+                {r.display_name.split(',').slice(0, 2).join(', ')}
+              </div>
+              <div className="text-xs text-primary-foreground/50 line-clamp-1">
+                {r.display_name}
+              </div>
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
 
       {hasCoords && (
         <div className="flex items-center gap-1.5 text-xs text-primary">
