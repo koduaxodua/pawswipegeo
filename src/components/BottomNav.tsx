@@ -1,10 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Heart, PawPrint, Plus, FileText } from 'lucide-react';
+import { Heart, PawPrint, Plus, FileText, Trophy } from 'lucide-react';
 
 const navItems = [
   { path: '/', icon: PawPrint, label: 'სვაიპი' },
   { path: '/favorites', icon: Heart, label: 'მოწონებული' },
   { path: '/add', icon: Plus, label: 'დამატება' },
+  { path: '/missions', icon: Trophy, label: 'მისიები' },
   { path: '/terms', icon: FileText, label: 'პირობები' },
 ];
 

@@ -94,9 +94,13 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs }: MapSheetPr
     return { x, y };
   };
 
-  const directionsUrl = userLocation
-    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${fLat},${fLng}`
-    : `https://www.google.com/maps/search/?api=1&query=${fLat},${fLng}`;
+  // Google Maps URL — always for the SELECTED dog (or current dog as fallback)
+  const targetDog = selected ?? currentDog;
+  const [tLat, tLng] = targetDog ? getDogCoords(targetDog) : focusCoords;
+  const targetLabel = targetDog ? encodeURIComponent(`${targetDog.name} — ${targetDog.location}`) : '';
+  const directionsUrl = userLocation && targetDog
+    ? `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${tLat},${tLng}&destination_place_id=${targetLabel}`
+    : `https://www.google.com/maps/search/?api=1&query=${tLat},${tLng}${targetLabel ? `&query_place_id=${targetLabel}` : ''}`;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
