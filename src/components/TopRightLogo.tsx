@@ -1,24 +1,35 @@
 import { useState } from 'react';
+import { LanguageToggle } from '@/components/LanguageToggle';
 
+/**
+ * Fixed top-right bar — visible on every page.
+ * Contains the KODUA logo (link) and the EN/KA language toggle stacked vertically.
+ */
 export function TopRightLogo() {
-  const [hidden, setHidden] = useState(false);
-  if (hidden) return null;
+  const [imgFailed, setImgFailed] = useState(false);
 
   return (
-    <a
-      href="https://github.com/koduaxodua"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="fixed top-3 right-3 z-30 group"
-      aria-label="Made by KODUA"
-    >
-      <img
-        src="/brand/kodua.jpg"
-        alt="KODUA"
-        onError={() => setHidden(true)}
-        className="h-6 w-auto max-w-[110px] object-contain opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md"
-        draggable={false}
-      />
-    </a>
+    <div className="fixed top-2 right-2 z-30 flex flex-col items-end gap-1.5 safe-area-top pointer-events-none">
+      {!imgFailed && (
+        <a
+          href="https://github.com/koduaxodua"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="pointer-events-auto"
+          aria-label="KODUA"
+        >
+          <img
+            src="/brand/kodua.jpg"
+            alt="KODUA"
+            onError={() => setImgFailed(true)}
+            className="h-5 w-auto max-w-[80px] object-contain opacity-80 hover:opacity-100 transition-opacity drop-shadow-md"
+            draggable={false}
+          />
+        </a>
+      )}
+      <div className="pointer-events-auto">
+        <LanguageToggle />
+      </div>
+    </div>
   );
 }

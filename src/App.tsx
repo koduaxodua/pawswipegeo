@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
+import { TopRightLogo } from "@/components/TopRightLogo";
 import { Tutorial } from "@/components/Tutorial";
 import { AdminModeProvider, useAdminMode } from "@/contexts/AdminMode";
 import { LocaleProvider } from "@/contexts/Locale";
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
+          <TopRightLogo />
           <Tutorial />
         </AdminModeProvider>
       </BrowserRouter>

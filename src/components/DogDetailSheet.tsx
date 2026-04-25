@@ -39,13 +39,15 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl glass-strong overflow-y-auto !left-1/2 !-translate-x-1/2 !max-w-lg !w-full px-5 pb-8">
-        <div className="mx-auto w-10 h-1 rounded-full bg-muted-foreground/30 mt-2 mb-4" />
-        <SheetHeader>
+      <SheetContent side="bottom" className="h-[85dvh] rounded-t-3xl glass-strong !left-1/2 !-translate-x-1/2 !max-w-lg !w-full p-0 flex flex-col">
+        {/* drag handle */}
+        <div className="mx-auto w-10 h-1 rounded-full bg-muted-foreground/30 mt-2 mb-2 flex-shrink-0" />
+        <SheetHeader className="px-5 flex-shrink-0">
           <SheetTitle className="text-xl font-bold text-foreground">{dog.name}</SheetTitle>
         </SheetHeader>
 
-        <div className="mt-3 space-y-3">
+        {/* scrollable content */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-5 pt-3 pb-3 space-y-3">
           <img
             src={dog.photo}
             alt={dog.name}
@@ -91,7 +93,10 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
               {dog.caretakerPhone}
             </a>
           </div>
+        </div>
 
+        {/* sticky bottom — always visible delete-request action */}
+        <div className="flex-shrink-0 px-5 py-3 border-t border-border/40 bg-background/60 backdrop-blur safe-area-bottom">
           <button
             onClick={handleDeleteRequest}
             className={`w-full inline-flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-medium transition active:scale-[0.98] ${

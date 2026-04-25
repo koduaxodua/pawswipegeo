@@ -9,7 +9,6 @@ import { useLikedDogs } from '@/hooks/useLikedDogs';
 import { Heart, X, RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
-import { LanguageToggle } from '@/components/LanguageToggle';
 import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
@@ -62,31 +61,14 @@ export default function Index() {
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-safe-nav safe-area-top overflow-hidden">
-      {/* Header — PRG left; KODUA + LanguageToggle stacked right */}
-      <div className="flex items-start justify-between gap-3 w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
+      {/* Header — PRG on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
+      <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-24">
         <div className="flex items-center gap-2.5 min-w-0">
           <Logo />
           <div className="flex flex-col leading-tight min-w-0">
             <span className="text-sm sm:text-base font-bold text-foreground truncate">{t('app.title')}</span>
             <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
           </div>
-        </div>
-        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-          <a
-            href="https://github.com/koduaxodua"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="KODUA"
-          >
-            <img
-              src="/brand/kodua.jpg"
-              alt="KODUA"
-              className="h-5 w-auto max-w-[80px] object-contain opacity-80 hover:opacity-100 transition-opacity"
-              draggable={false}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
-          </a>
-          <LanguageToggle />
         </div>
       </div>
 
