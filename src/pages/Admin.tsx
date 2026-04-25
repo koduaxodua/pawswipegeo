@@ -19,11 +19,16 @@ export default function Admin() {
 
   const requestedDogs = dogs.filter(d => requestedIds.includes(d.id));
 
+  const isUuid = (id: string) =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   const handleRealDelete = async (dog: Dog) => {
     if (!confirm(t('admin.delete.confirm', { name: dog.name }))) return;
     setDeleting(dog.id);
     try {
-      if (isSupabaseConfigured && supabase) {
+      // Sample seed dogs have non-UUID IDs ('1', '2', ...) and aren't in DB.
+      // Only attempt a Supabase delete for real (UUID) records.
+      if (isSupabaseConfigured && supabase && isUuid(dog.id)) {
         const { error } = await supabase.from('pets').delete().eq('id', dog.id);
         if (error) {
           if (error.message.includes('row-level security') || error.code === '42501') {
