@@ -9,7 +9,7 @@ export function TopRightLogo() {
   const [imgFailed, setImgFailed] = useState(false);
 
   return (
-    <div className="fixed top-2 right-2 z-30 flex flex-col items-end gap-1.5 safe-area-top pointer-events-none">
+    <div className="fixed top-4 right-3 z-30 flex flex-col items-end gap-1.5 safe-area-top pointer-events-none">
       {!imgFailed && (
         <a
           href="https://github.com/koduaxodua"

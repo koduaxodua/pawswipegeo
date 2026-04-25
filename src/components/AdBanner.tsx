@@ -7,8 +7,10 @@ interface AdBannerProps {
   onDismiss: () => void;
 }
 
-// Replace with your real AdSense publisher ID & slot.
-const ADSENSE_CLIENT = 'ca-pub-0000000000000000';
+// AdSense publisher (Levani Kodua, pub-5803703412690830).
+// Set ADSENSE_SLOT once an ad unit is created in the AdSense dashboard;
+// until then, only the themed placeholder shows.
+const ADSENSE_CLIENT = 'ca-pub-5803703412690830';
 const ADSENSE_SLOT = '0000000000';
 
 const isAdSenseConfigured =

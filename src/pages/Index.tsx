@@ -60,7 +60,7 @@ export default function Index() {
   const allSwiped = availableDogs.length === 0;
 
   return (
-    <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-safe-nav safe-area-top overflow-hidden">
+    <div className="flex flex-col items-center h-[100dvh] px-4 pt-6 pb-safe-nav safe-area-top overflow-hidden">
       {/* Header — PRG on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
       <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-24">
         <div className="flex items-center gap-2.5 min-w-0">
