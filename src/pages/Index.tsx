@@ -59,13 +59,13 @@ export default function Index() {
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-20 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-center w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
-        <div className="flex items-center gap-3">
+      {/* Header — left-aligned, right padding clears KODUA logo */}
+      <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-28">
+        <div className="flex items-center gap-2.5">
           <Logo />
           <div className="flex flex-col leading-tight">
-            <span className="text-base font-bold text-foreground">Pet Rescue Georgia</span>
-            <span className="text-[11px] text-muted-foreground">მიუსაფარი ცხოველების მიკედლება</span>
+            <span className="text-sm sm:text-base font-bold text-foreground">Pet Rescue Georgia</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground">მიუსაფარი ცხოველების მიკედლება</span>
           </div>
         </div>
       </div>

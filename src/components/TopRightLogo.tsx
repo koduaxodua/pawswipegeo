@@ -16,7 +16,7 @@ export function TopRightLogo() {
         src="/brand/kodua.jpg"
         alt="KODUA"
         onError={() => setHidden(true)}
-        className="h-8 w-auto object-contain opacity-70 group-hover:opacity-100 transition-opacity drop-shadow-md"
+        className="h-6 w-auto max-w-[110px] object-contain opacity-80 group-hover:opacity-100 transition-opacity drop-shadow-md"
         draggable={false}
       />
     </a>

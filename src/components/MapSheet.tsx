@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import type { Dog } from '@/data/dogs';
 import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
-import { MapPin } from 'lucide-react';
+import { haversineKm, formatDistance } from '@/lib/geo';
+import { MapPin, Crosshair } from 'lucide-react';
 
 interface MapSheetProps {
   open: boolean;
@@ -15,29 +16,40 @@ interface MapSheetProps {
 }
 
 const userIcon = L.divIcon({
-  html: `<div style="width:18px;height:18px;border-radius:9999px;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 4px rgba(59,130,246,0.3);"></div>`,
+  html: `<div style="position:relative;">
+    <div style="position:absolute;inset:0;width:24px;height:24px;border-radius:9999px;background:rgba(59,130,246,0.4);animation:pulse 2s ease-out infinite;"></div>
+    <div style="position:relative;width:24px;height:24px;border-radius:9999px;background:#3b82f6;border:4px solid #fff;box-shadow:0 0 0 2px rgba(59,130,246,0.5);"></div>
+  </div>`,
   className: 'user-marker',
-  iconSize: [18, 18],
-  iconAnchor: [9, 9],
+  iconSize: [24, 24],
+  iconAnchor: [12, 12],
 });
 
-const dotIcon = (isCurrent: boolean) => {
-  const color = isCurrent ? 'hsl(36, 89%, 54%)' : 'hsl(283, 49%, 53%)';
-  const size = isCurrent ? 22 : 16;
+type DotState = 'default' | 'current' | 'selected';
+
+const dotIcon = (state: DotState) => {
+  const config = {
+    selected: { color: 'hsl(36, 89%, 54%)', size: 38, ring: '0 0 0 6px rgba(240,160,36,0.35)' },
+    current: { color: 'hsl(283, 49%, 53%)', size: 32, ring: '0 0 0 4px rgba(161,78,193,0.3)' },
+    default: { color: 'hsl(283, 49%, 53%)', size: 26, ring: '0 2px 8px rgba(0,0,0,0.5)' },
+  }[state];
+
   return L.divIcon({
-    html: `<div style="width:${size}px;height:${size}px;border-radius:9999px;background:${color};border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.5);cursor:pointer;"></div>`,
+    html: `<div style="width:${config.size}px;height:${config.size}px;border-radius:9999px;background:${config.color};border:4px solid #fff;box-shadow:${config.ring};cursor:pointer;transition:transform 0.2s;"></div>`,
     className: 'pet-dot',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
+    iconSize: [config.size, config.size],
+    iconAnchor: [config.size / 2, config.size / 2],
   });
 };
 
 export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog }: MapSheetProps) {
-  const mapRef = useRef<L.Map | null>(null);
+  const [map, setMap] = useState<L.Map | null>(null);
   const markersRef = useRef<globalThis.Map<string, L.Marker>>(new globalThis.Map());
   const userMarkerRef = useRef<L.Marker | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [locating, setLocating] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   // Get user location once when sheet opens
   useEffect(() => {
@@ -54,78 +66,91 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
     );
   }, [open, userLocation]);
 
-  // Init map via callback ref — only fires when the DOM node actually mounts
+  // Reset selection when sheet closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedId(null);
+    }
+  }, [open]);
+
+  // Init map via callback ref — fires when DOM node mounts
   const setContainer = useCallback((node: HTMLDivElement | null) => {
     if (!node) {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
+      setMap(prev => {
+        prev?.remove();
         markersRef.current.clear();
         userMarkerRef.current = null;
-      }
+        return null;
+      });
       return;
     }
-    if (mapRef.current) return;
-
-    const map = L.map(node, {
-      center: DEFAULT_CENTER,
-      zoom: 12,
-      zoomControl: true,
-      attributionControl: false,
+    setMap(prev => {
+      if (prev) return prev;
+      const m = L.map(node, {
+        center: DEFAULT_CENTER,
+        zoom: 12,
+        zoomControl: true,
+        attributionControl: false,
+      });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+      }).addTo(m);
+      // size correction once in DOM
+      requestAnimationFrame(() => m.invalidateSize());
+      setTimeout(() => m.invalidateSize(), 350);
+      return m;
     });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map);
-
-    mapRef.current = map;
-
-    // Animation may not be done yet; force size recalc shortly
-    setTimeout(() => map.invalidateSize(), 100);
-    setTimeout(() => map.invalidateSize(), 400);
   }, []);
+
+  // ResizeObserver — keep map sized correctly while sheet animates
+  useEffect(() => {
+    if (!map) return;
+    const container = map.getContainer();
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [map]);
 
   // Sync dog markers
   useEffect(() => {
-    const map = mapRef.current;
     if (!map) return;
-
-    const existingIds = new Set(markersRef.current.keys());
     const seen = new Set<string>();
 
     allDogs.forEach(dog => {
       const [lat, lng] = getDogCoords(dog);
       if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
-      const isCurrent = currentDog?.id === dog.id;
       seen.add(dog.id);
+
+      const state: DotState =
+        selectedId === dog.id ? 'selected' : currentDog?.id === dog.id ? 'current' : 'default';
 
       const existing = markersRef.current.get(dog.id);
       if (existing) {
         existing.setLatLng([lat, lng]);
-        existing.setIcon(dotIcon(isCurrent));
+        existing.setIcon(dotIcon(state));
+        existing.setZIndexOffset(state === 'selected' ? 1000 : state === 'current' ? 500 : 0);
       } else {
         const m = L.marker([lat, lng], {
-          icon: dotIcon(isCurrent),
-          zIndexOffset: isCurrent ? 500 : 0,
+          icon: dotIcon(state),
+          zIndexOffset: state === 'selected' ? 1000 : state === 'current' ? 500 : 0,
         }).addTo(map);
-        m.bindTooltip(dog.name, { direction: 'top', offset: [0, -8], opacity: 0.95 });
+        m.bindTooltip(dog.name, { direction: 'top', offset: [0, -16], opacity: 0.95 });
         m.on('click', () => onSelectDog?.(dog));
         markersRef.current.set(dog.id, m);
       }
     });
 
     // Remove markers no longer in allDogs
-    existingIds.forEach(id => {
+    Array.from(markersRef.current.keys()).forEach(id => {
       if (!seen.has(id)) {
         markersRef.current.get(id)?.remove();
         markersRef.current.delete(id);
       }
     });
-  }, [allDogs, currentDog, onSelectDog]);
+  }, [map, allDogs, currentDog, selectedId, onSelectDog]);
 
   // Sync user location marker
   useEffect(() => {
-    const map = mapRef.current;
     if (!map || !userLocation) return;
     if (userMarkerRef.current) {
       userMarkerRef.current.setLatLng(userLocation);
@@ -134,64 +159,151 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
         .addTo(map)
         .bindTooltip('თქვენ', { direction: 'top', offset: [0, -10] });
     }
-  }, [userLocation]);
+  }, [map, userLocation]);
 
-  // Fit bounds to all points when sheet opens
+  // Fit bounds to all points when sheet opens or dataset changes
   useEffect(() => {
-    if (!open) return;
-    const map = mapRef.current;
-    if (!map) return;
-    const points: L.LatLngTuple[] = [
-      ...allDogs
-        .map(d => getDogCoords(d))
-        .filter(([la, ln]) => typeof la === 'number' && !isNaN(la) && typeof ln === 'number' && !isNaN(ln)) as L.LatLngTuple[],
-      ...(userLocation ? [userLocation as L.LatLngTuple] : []),
-    ];
+    if (!map || !open) return;
+    const points: L.LatLngTuple[] = allDogs
+      .map(d => getDogCoords(d) as L.LatLngTuple)
+      .filter(([la, ln]) => typeof la === 'number' && !isNaN(la) && typeof ln === 'number' && !isNaN(ln));
+    if (userLocation) points.push(userLocation as L.LatLngTuple);
     if (points.length === 0) return;
-    setTimeout(() => {
+    const id = setTimeout(() => {
+      if (selectedId) return; // keep zoom on selection
       if (points.length === 1) {
         map.setView(points[0], 14);
       } else {
-        map.fitBounds(L.latLngBounds(points).pad(0.15), { animate: false, maxZoom: 15 });
+        map.fitBounds(L.latLngBounds(points).pad(0.2), { animate: false, maxZoom: 14 });
       }
       map.invalidateSize();
-    }, 450);
-  }, [open, allDogs.length, userLocation]);
+    }, 380);
+    return () => clearTimeout(id);
+  }, [map, open, allDogs.length, userLocation, selectedId]);
+
+  // Fly to selected dog
+  useEffect(() => {
+    if (!map || !selectedId) return;
+    const dog = allDogs.find(d => d.id === selectedId);
+    if (!dog) return;
+    map.flyTo(getDogCoords(dog), 16, { duration: 0.7 });
+  }, [map, selectedId, allDogs]);
+
+  // Sorted list with distances
+  const refPoint: [number, number] = userLocation ?? DEFAULT_CENTER;
+  const sortedDogs = useMemo(() => {
+    return [...allDogs]
+      .map(dog => ({ dog, distance: haversineKm(refPoint, getDogCoords(dog)) }))
+      .sort((a, b) => a.distance - b.distance);
+  }, [allDogs, refPoint[0], refPoint[1]]);
+
+  const handleListClick = (dog: Dog) => {
+    setSelectedId(dog.id);
+  };
+
+  // Auto-scroll selected list item into view
+  useEffect(() => {
+    if (!selectedId || !listRef.current) return;
+    const el = listRef.current.querySelector<HTMLElement>(`[data-dog-id="${selectedId}"]`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[90vh] p-0 glass-strong border-t border-border flex flex-col">
-        <SheetHeader className="p-4 pb-2 flex-shrink-0">
-          <SheetTitle className="flex items-center gap-2 text-foreground">
+      <SheetContent side="bottom" className="h-[92vh] p-0 glass-strong border-t border-border flex flex-col">
+        <SheetHeader className="px-4 pt-3 pb-2 flex-shrink-0">
+          <SheetTitle className="flex items-center gap-2 text-foreground text-base">
             <MapPin className="h-5 w-5 text-primary" />
             ცხოველები რუკაზე ({allDogs.length})
             {locating && (
-              <span className="text-xs text-muted-foreground ml-auto">
+              <span className="text-xs text-muted-foreground ml-auto font-normal">
                 მდებარეობის ძებნა...
               </span>
             )}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="flex-1 relative overflow-hidden bg-secondary">
+        {/* MAP — takes ~60% of remaining height */}
+        <div className="flex-[1.5] relative overflow-hidden bg-secondary min-h-0">
           {open && <div ref={setContainer} className="absolute inset-0 z-0" />}
 
-          {/* Legend */}
-          <div className="absolute bottom-3 left-3 z-[1000] glass rounded-xl px-3 py-2 text-xs space-y-1">
-            <div className="flex items-center gap-2 text-foreground">
-              <div className="h-3 w-3 rounded-full bg-primary border-2 border-white" />
-              მიმდინარე
-            </div>
-            <div className="flex items-center gap-2 text-foreground">
-              <div className="h-2.5 w-2.5 rounded-full bg-accent border-2 border-white" />
-              დანარჩენი
-            </div>
-            {userLocation && (
-              <div className="flex items-center gap-2 text-foreground">
-                <div className="h-2.5 w-2.5 rounded-full bg-blue-500 border-2 border-white" />
-                შენ
-              </div>
-            )}
+          {/* Re-center to user button */}
+          {userLocation && (
+            <button
+              onClick={() => map?.flyTo(userLocation, 14, { duration: 0.6 })}
+              className="absolute top-3 right-3 z-[1000] glass h-10 w-10 rounded-full flex items-center justify-center text-foreground hover:scale-105 transition"
+              aria-label="ჩემი მდებარეობა"
+            >
+              <Crosshair className="h-5 w-5 text-primary" />
+            </button>
+          )}
+
+          {/* Selected pet pop-card */}
+          {selectedId && (() => {
+            const dog = allDogs.find(d => d.id === selectedId);
+            if (!dog) return null;
+            return (
+              <button
+                onClick={() => onSelectDog?.(dog)}
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] glass-strong rounded-2xl p-2.5 pr-4 flex items-center gap-3 shadow-2xl active:scale-[0.98] transition max-w-[88%]"
+              >
+                <img src={dog.photo} alt={dog.name} className="h-12 w-12 rounded-xl object-cover flex-shrink-0" />
+                <div className="text-left min-w-0">
+                  <div className="font-semibold text-foreground truncate">{dog.name}, {dog.age}</div>
+                  <div className="text-xs text-muted-foreground truncate">{dog.location}</div>
+                  <div className="text-[11px] text-primary mt-0.5">დააჭირე → სრული პროფილი</div>
+                </div>
+              </button>
+            );
+          })()}
+        </div>
+
+        {/* LIST — nearest dogs */}
+        <div className="flex-1 min-h-0 border-t border-border/50 bg-background/90 backdrop-blur flex flex-col">
+          <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground font-medium flex-shrink-0">
+            {userLocation ? 'შენთან ახლოს' : 'ცხოველების სია'}
+          </div>
+          <div ref={listRef} className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
+            {sortedDogs.map(({ dog, distance }) => {
+              const isSelected = selectedId === dog.id;
+              const isCurrent = currentDog?.id === dog.id;
+              return (
+                <button
+                  key={dog.id}
+                  data-dog-id={dog.id}
+                  onClick={() => handleListClick(dog)}
+                  className={`w-full flex items-center gap-3 p-2 rounded-xl text-left transition border ${
+                    isSelected
+                      ? 'bg-primary/15 border-primary/40'
+                      : isCurrent
+                      ? 'bg-accent/10 border-accent/30'
+                      : 'border-transparent hover:bg-secondary/40'
+                  }`}
+                >
+                  <img
+                    src={dog.photo}
+                    alt={dog.name}
+                    className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm text-foreground truncate">
+                      {isCurrent && '⭐ '}{dog.name}, {dog.age}
+                    </div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {dog.location}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                    <div className={`text-xs font-semibold ${isSelected ? 'text-primary' : 'text-foreground/80'}`}>
+                      {formatDistance(distance)}
+                    </div>
+                    {userLocation && (
+                      <div className="text-[10px] text-muted-foreground">შენგან</div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </SheetContent>
