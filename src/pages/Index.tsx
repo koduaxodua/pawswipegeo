@@ -61,7 +61,7 @@ export default function Index() {
   const allSwiped = availableDogs.length === 0;
 
   return (
-    <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-20 overflow-hidden">
+    <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-safe-nav safe-area-top overflow-hidden">
       {/* Header — PRG left; KODUA + LanguageToggle stacked right */}
       <div className="flex items-start justify-between gap-3 w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -116,8 +116,8 @@ export default function Index() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-3 py-2">
-          {/* Card stack — flexible height, capped to fit */}
-          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg flex-1 min-h-0 aspect-[3/4] mx-auto" style={{ maxHeight: 'min(calc(100dvh - 280px), 70vh)' }}>
+          {/* Card stack — flexible height, capped to fit on small phones */}
+          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg flex-1 min-h-0 aspect-[3/4] mx-auto" style={{ maxHeight: 'min(calc(100dvh - 320px), 70vh)' }}>
             <AnimatePresence>
               {showAd ? (
                 <AdBanner key="ad" onDismiss={() => setShowAd(false)} />

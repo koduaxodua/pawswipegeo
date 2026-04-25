@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { PawPrint } from 'lucide-react';
 import { useLocale } from '@/contexts/Locale';
@@ -7,9 +7,14 @@ interface AdBannerProps {
   onDismiss: () => void;
 }
 
-// Replace with your real AdSense publisher ID & slot
+// Replace with your real AdSense publisher ID & slot.
 const ADSENSE_CLIENT = 'ca-pub-0000000000000000';
 const ADSENSE_SLOT = '0000000000';
+
+const isAdSenseConfigured =
+  ADSENSE_CLIENT !== 'ca-pub-0000000000000000' && ADSENSE_SLOT !== '0000000000';
+
+const SKIP_SECONDS = 3;
 
 declare global {
   interface Window {
@@ -21,9 +26,10 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
   const { locale } = useLocale();
   const adRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
+  const [skipIn, setSkipIn] = useState(SKIP_SECONDS);
 
   useEffect(() => {
-    if (pushed.current) return;
+    if (!isAdSenseConfigured || pushed.current) return;
     try {
       if (typeof window !== 'undefined' && Array.isArray(window.adsbygoogle)) {
         window.adsbygoogle.push({});
@@ -34,50 +40,68 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
     }
   }, []);
 
+  useEffect(() => {
+    if (skipIn <= 0) return;
+    const id = setInterval(() => setSkipIn(s => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [skipIn]);
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl glass-strong p-6 text-center"
+      className="absolute inset-0 rounded-3xl glass-strong overflow-hidden flex flex-col"
     >
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider text-primary-foreground/50">
+      {/* Top label */}
+      <div className="flex-shrink-0 pt-3 pb-1 text-center text-[10px] uppercase tracking-wider text-foreground/50">
         {locale === 'en' ? 'Ad' : 'რეკლამა'}
       </div>
 
-      {/* Real AdSense unit */}
-      <ins
-        ref={adRef}
-        className="adsbygoogle"
-        style={{ display: 'block', width: '100%', minHeight: '250px' }}
-        data-ad-client={ADSENSE_CLIENT}
-        data-ad-slot={ADSENSE_SLOT}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
-      />
+      {/* Middle scrollable content area */}
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 flex flex-col items-center justify-center text-center gap-3">
+        {isAdSenseConfigured && (
+          <ins
+            ref={adRef}
+            className="adsbygoogle"
+            style={{ display: 'block', width: '100%', minHeight: '200px' }}
+            data-ad-client={ADSENSE_CLIENT}
+            data-ad-slot={ADSENSE_SLOT}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
+        )}
 
-      {/* Fallback / themed pet-care creative shown when AdSense not active */}
-      <div className="flex flex-col items-center gap-3 mt-4">
         <PawPrint className="h-10 w-10 text-primary" />
-        <h3 className="text-lg font-semibold text-primary-foreground">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground leading-snug">
           {locale === 'en' ? 'Best food for your pet 🐾' : 'ცხოველების საუკეთესო საკვები 🐾'}
         </h3>
-        <p className="text-sm text-primary-foreground/70 max-w-xs">
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-xs leading-relaxed">
           {locale === 'en'
             ? 'High-quality food and accessories for your four-legged friend'
             : 'მაღალი ხარისხის საკვები და აქსესუარები შენი ოთხფეხა მეგობრისთვის'}
         </p>
-        <span className="text-xs text-primary-foreground/40">
-          {locale === 'en' ? '(Ad slot — pet care)' : '(სარეკლამო ადგილი — pet სფეროს რეკლამები)'}
+        <span className="text-[10px] text-muted-foreground/60">
+          {locale === 'en' ? '(ad slot)' : '(სარეკლამო ადგილი)'}
         </span>
       </div>
 
-      <button
-        onClick={onDismiss}
-        className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
-      >
-        {locale === 'en' ? 'Continue →' : 'გაგრძელება →'}
-      </button>
+      {/* Sticky bottom continue button — always visible */}
+      <div className="flex-shrink-0 px-4 pt-2 pb-4 border-t border-border/30">
+        <button
+          onClick={onDismiss}
+          disabled={skipIn > 0}
+          className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {skipIn > 0
+            ? locale === 'en'
+              ? `Skip in ${skipIn}s`
+              : `გამოტოვება ${skipIn} წმ-ში`
+            : locale === 'en'
+            ? 'Continue →'
+            : 'გაგრძელება →'}
+        </button>
+      </div>
     </motion.div>
   );
 }
