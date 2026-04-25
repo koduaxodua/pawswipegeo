@@ -69,13 +69,17 @@ drop policy if exists "pets_auth_insert" on public.pets;
 create policy "pets_auth_insert" on public.pets
   for insert with check (auth.uid() = created_by);
 
+-- Update / delete: any authenticated user (the "admin" gate is enforced
+-- client-side via the hidden 10-tap unlock — see src/contexts/AdminMode.tsx).
 drop policy if exists "pets_owner_update" on public.pets;
-create policy "pets_owner_update" on public.pets
-  for update using (auth.uid() = created_by);
+drop policy if exists "pets_authed_update" on public.pets;
+create policy "pets_authed_update" on public.pets
+  for update using (auth.role() = 'authenticated');
 
 drop policy if exists "pets_owner_delete" on public.pets;
-create policy "pets_owner_delete" on public.pets
-  for delete using (auth.uid() = created_by);
+drop policy if exists "pets_authed_delete" on public.pets;
+create policy "pets_authed_delete" on public.pets
+  for delete using (auth.role() = 'authenticated');
 
 -- Swipes: each user only sees & manages their own.
 drop policy if exists "swipes_self_read" on public.swipes;
