@@ -1,5 +1,8 @@
+export type Species = 'dog' | 'cat';
+
 export interface Dog {
   id: string;
+  species?: Species;
   name: string;
   age: string;
   breed: string;
@@ -15,6 +18,44 @@ export interface Dog {
   description: string;
   addedDate: string;
 }
+
+interface PetRow {
+  id: string;
+  species: Species;
+  name: string;
+  age: string | null;
+  breed: string | null;
+  gender: 'მამრობითი' | 'მდედრობითი' | null;
+  personality: string | null;
+  health: string | null;
+  location: string | null;
+  lat: number | null;
+  lng: number | null;
+  photo_url: string;
+  caretaker_phone: string;
+  caretaker_name: string | null;
+  description: string | null;
+  created_at: string;
+}
+
+export const petRowToDog = (r: PetRow): Dog => ({
+  id: r.id,
+  species: r.species,
+  name: r.name,
+  age: r.age ?? '',
+  breed: r.breed ?? '',
+  gender: r.gender ?? 'მამრობითი',
+  personality: r.personality ?? '',
+  health: r.health ?? '',
+  location: r.location ?? '',
+  lat: r.lat ?? undefined,
+  lng: r.lng ?? undefined,
+  photo: r.photo_url,
+  caretakerPhone: r.caretaker_phone,
+  caretakerName: r.caretaker_name ?? '',
+  description: r.description ?? '',
+  addedDate: r.created_at.slice(0, 10),
+});
 
 export const sampleDogs: Dog[] = [
   {

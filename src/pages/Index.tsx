@@ -8,6 +8,7 @@ import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
 import { Heart, X, RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Logo } from '@/components/Logo';
 import type { Dog } from '@/data/dogs';
 
 const AD_FREQUENCY = 5;
@@ -60,9 +61,12 @@ export default function Index() {
     <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-24 pt-4">
       {/* Header */}
       <div className="flex items-center justify-center w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-3xl">🐾</span>
-          <h1 className="text-2xl font-bold text-primary-foreground">PawSwipe</h1>
+        <div className="flex items-center gap-3">
+          <Logo />
+          <div className="flex flex-col leading-tight">
+            <span className="text-lg font-bold text-foreground">Pet Rescue Georgia</span>
+            <span className="text-[11px] text-muted-foreground">მიუსაფარი ცხოველების მიკედლება</span>
+          </div>
         </div>
       </div>
 

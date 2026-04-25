@@ -79,22 +79,31 @@ export default function AddDog() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.photo || !form.caretakerPhone || !form.location) {
       toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები და აირჩიე ლოკაცია რუკაზე', variant: 'destructive' });
       return;
     }
-    addDog(form);
-    toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
-    navigate('/');
+    setSubmitting(true);
+    try {
+      await addDog(form);
+      toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
+      navigate('/');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'უცნობი შეცდომა';
+      toast({ title: `დამატება ვერ მოხერხდა: ${msg}`, variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Plus className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-primary-foreground">ძაღლის დამატება</h1>
+        <h1 className="text-2xl font-bold text-foreground">ცხოველის დამატება</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -191,10 +200,11 @@ export default function AddDog() {
 
         <button
           type="submit"
-          className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98]"
+          disabled={submitting}
+          className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <PawPrint className="h-5 w-5" />
-          ძაღლის დამატება
+          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <PawPrint className="h-5 w-5" />}
+          {submitting ? 'იტვირთება...' : 'ცხოველის დამატება'}
         </button>
       </form>
     </div>

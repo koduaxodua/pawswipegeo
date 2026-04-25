@@ -10,7 +10,7 @@ export default function Terms() {
 
       <div className="space-y-4">
         <Section title="1. ზოგადი დებულებები">
-          <p className="text-primary-foreground">PawSwipe არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
+          <p className="text-primary-foreground">Pet Rescue Georgia არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
         </Section>
 
         <Section title="2. ცხოველთა დაცვის კანონი">
@@ -41,7 +41,7 @@ export default function Terms() {
         </Section>
 
         <Section title="5. პასუხისმგებლობის შეზღუდვა">
-          <p className="text-primary-foreground">PawSwipe:</p>
+          <p className="text-primary-foreground">Pet Rescue Georgia:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1 text-primary-foreground">
             <li>არ არის პასუხისმგებელი მომხმარებლებს შორის კომუნიკაციის შედეგებზე</li>
             <li>არ იძლევა გარანტიას ატვირთული ინფორმაციის სიზუსტეზე</li>
@@ -51,7 +51,7 @@ export default function Terms() {
         </Section>
 
         <Section title="6. ინტელექტუალური საკუთრება">
-          <p className="text-primary-foreground">PawSwipe-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
+          <p className="text-primary-foreground">Pet Rescue Georgia-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
         </Section>
 
         <Section title="7. დავების გადაწყვეტა">
@@ -60,7 +60,16 @@ export default function Terms() {
 
         <div className="glass rounded-2xl p-4 text-center">
           <p className="text-xs text-primary-foreground">ბოლო განახლება: 2026 წლის აპრილი</p>
-          <p className="text-xs mt-1 text-primary-foreground">📧 pawswipe@example.com</p>
+          <p className="text-xs mt-1 text-primary-foreground">
+            <a
+              href="https://www.facebook.com/profile.php?id=61566471334047"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              Facebook · Pet Rescue Georgia
+            </a>
+          </p>
         </div>
       </div>
     </div>
