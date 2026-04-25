@@ -9,11 +9,14 @@ import { useLikedDogs } from '@/hooks/useLikedDogs';
 import { Heart, X, RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Logo } from '@/components/Logo';
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
 const AD_FREQUENCY = 5;
 
 export default function Index() {
+  const t = useT();
   const { dogs } = useDogs();
   const { likedDogs, dislikedDogs, likeDog, dislikeDog, resetDisliked } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
@@ -35,7 +38,7 @@ export default function Index() {
       if (!currentDog) return;
       if (direction === 'right') {
         likeDog(currentDog);
-        toast({ title: `${currentDog.name} მოწონებულია! ❤️` });
+        toast({ title: t('index.toast.liked', { name: currentDog.name }) });
       } else {
         dislikeDog(currentDog);
       }
@@ -47,42 +50,44 @@ export default function Index() {
         return next;
       });
     },
-    [currentDog, likeDog, dislikeDog]
+    [currentDog, likeDog, dislikeDog, t]
   );
 
   const handleReset = () => {
     resetDisliked();
-    toast({ title: 'გამოტოვებული ძაღლები დაბრუნდა 🔄' });
+    toast({ title: t('index.toast.reset') });
   };
 
   const allSwiped = availableDogs.length === 0;
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-20 overflow-hidden">
-      {/* Header — PRG left, KODUA right */}
-      <div className="flex items-center justify-between gap-3 w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
+      {/* Header — PRG left; KODUA + LanguageToggle stacked right */}
+      <div className="flex items-start justify-between gap-3 w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <Logo />
           <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-sm sm:text-base font-bold text-foreground truncate">Pet Rescue Georgia</span>
-            <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">მიუსაფარი ცხოველების მიკედლება</span>
+            <span className="text-sm sm:text-base font-bold text-foreground truncate">{t('app.title')}</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
           </div>
         </div>
-        <a
-          href="https://github.com/koduaxodua"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-shrink-0"
-          aria-label="KODUA"
-        >
-          <img
-            src="/brand/kodua.jpg"
-            alt="KODUA"
-            className="h-5 w-auto max-w-[80px] object-contain opacity-80 hover:opacity-100 transition-opacity"
-            draggable={false}
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-          />
-        </a>
+        <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+          <a
+            href="https://github.com/koduaxodua"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="KODUA"
+          >
+            <img
+              src="/brand/kodua.jpg"
+              alt="KODUA"
+              className="h-5 w-auto max-w-[80px] object-contain opacity-80 hover:opacity-100 transition-opacity"
+              draggable={false}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          </a>
+          <LanguageToggle />
+        </div>
       </div>
 
       {allSwiped ? (
@@ -90,13 +95,13 @@ export default function Index() {
           <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
             <span className="text-6xl mb-4">🐾</span>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              ყველა ცხოველი ნანახია!
+              {t('index.allSwiped.title')}
             </h2>
             <p className="text-muted-foreground mb-2 text-sm">
-              ❤️ მოწონებული: {likedDogs.length} · ✕ გამოტოვებული: {dislikedDogs.length}
+              {t('index.allSwiped.stats', { liked: likedDogs.length, disliked: dislikedDogs.length })}
             </p>
             <p className="text-muted-foreground mb-6 text-sm">
-              შეგიძლია გამოტოვებულები დააბრუნო ან ახალი ცხოველი დაამატო
+              {t('index.allSwiped.hint')}
             </p>
             {dislikedDogs.length > 0 && (
               <button
@@ -104,7 +109,7 @@ export default function Index() {
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
               >
                 <RotateCcw className="h-4 w-4" />
-                გამოტოვებულების დაბრუნება
+                {t('index.resetDisliked')}
               </button>
             )}
           </div>
@@ -141,7 +146,7 @@ export default function Index() {
               onClick={() => handleSwipe('left')}
               disabled={showAd}
               className="glass h-13 w-13 sm:h-14 sm:w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label="გამოტოვება"
+              aria-label={t('index.action.skip')}
               style={{ height: 52, width: 52 }}
             >
               <X className="h-6 w-6" />
@@ -150,17 +155,17 @@ export default function Index() {
             <button
               onClick={() => setMapOpen(true)}
               className="glass inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-foreground hover:scale-105 active:scale-95 transition-transform"
-              aria-label="რუკის ნახვა"
+              aria-label={t('index.action.map')}
             >
               <Map className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">რუკა</span>
+              <span className="text-sm font-medium">{t('index.action.map')}</span>
             </button>
 
             <button
               onClick={() => handleSwipe('right')}
               disabled={showAd}
               className="glass rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              aria-label="მოწონება"
+              aria-label={t('index.action.like')}
               style={{ height: 60, width: 60 }}
             >
               <Heart className="h-7 w-7" fill="currentColor" />

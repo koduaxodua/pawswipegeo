@@ -23,7 +23,11 @@ export function AdminModeProvider({ children }: { children: ReactNode }) {
     if (tapsRef.current.length >= REQUIRED_TAPS) {
       tapsRef.current = [];
       setIsAdmin(true);
-      toast({ title: '🔓 ადმინ რეჟიმი ჩართულია' });
+      // Locale-aware toast — read locale directly from localStorage to avoid coupling
+      const stored = (typeof window !== 'undefined' && localStorage.getItem('pawswipe_locale')) || 'ka';
+      const detected = (typeof window !== 'undefined' && (navigator.language || 'en').toLowerCase().startsWith('ka')) ? 'ka' : 'en';
+      const locale = stored === 'ka' || stored === 'en' ? stored : detected;
+      toast({ title: locale === 'en' ? '🔓 Admin mode unlocked' : '🔓 ადმინ რეჟიმი ჩართულია' });
       return true;
     }
     return false;

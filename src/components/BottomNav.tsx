@@ -1,16 +1,18 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Heart, PawPrint, Plus, FileText, Trophy } from 'lucide-react';
 import { useAdminMode } from '@/contexts/AdminMode';
+import { useT, type TKey } from '@/contexts/Locale';
 
-const navItems = [
-  { path: '/', icon: PawPrint, label: 'სვაიპი' },
-  { path: '/favorites', icon: Heart, label: 'მოწონებული' },
-  { path: '/add', icon: Plus, label: 'დამატება' },
-  { path: '/missions', icon: Trophy, label: 'მისიები' },
-  { path: '/terms', icon: FileText, label: 'პირობები' },
+const navItems: { path: string; icon: typeof PawPrint; labelKey: TKey }[] = [
+  { path: '/', icon: PawPrint, labelKey: 'nav.swipe' },
+  { path: '/favorites', icon: Heart, labelKey: 'nav.favorites' },
+  { path: '/add', icon: Plus, labelKey: 'nav.add' },
+  { path: '/missions', icon: Trophy, labelKey: 'nav.missions' },
+  { path: '/terms', icon: FileText, labelKey: 'nav.terms' },
 ];
 
 export function BottomNav() {
+  const t = useT();
   const location = useLocation();
   const navigate = useNavigate();
   const { registerTermsTap } = useAdminMode();
@@ -37,7 +39,7 @@ export function BottomNav() {
               }`}
             >
               <item.icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium">{t(item.labelKey)}</span>
             </button>
           );
         })}

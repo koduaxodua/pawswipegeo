@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import type { Dog } from '@/data/dogs';
 import { MapPin, Info } from 'lucide-react';
+import { useT } from '@/contexts/Locale';
 
 interface SwipeCardProps {
   dog: Dog;
@@ -11,6 +12,7 @@ interface SwipeCardProps {
 }
 
 export function SwipeCard({ dog, onSwipe, onTap, isTop }: SwipeCardProps) {
+  const t = useT();
   const dragRef = useRef(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
@@ -72,13 +74,13 @@ export function SwipeCard({ dog, onSwipe, onTap, isTop }: SwipeCardProps) {
               className="absolute top-8 right-8 rounded-xl border-4 border-green-500 px-4 py-2 rotate-12"
               style={{ opacity: likeOpacity }}
             >
-              <span className="text-3xl font-bold text-green-500">მომწონს ❤️</span>
+              <span className="text-3xl font-bold text-green-500">{t('card.like')}</span>
             </motion.div>
             <motion.div
               className="absolute top-8 left-8 rounded-xl border-4 border-red-400 px-4 py-2 -rotate-12"
               style={{ opacity: nopeOpacity }}
             >
-              <span className="text-3xl font-bold text-red-400">შემდეგი ✕</span>
+              <span className="text-3xl font-bold text-red-400">{t('card.nope')}</span>
             </motion.div>
           </>
         )}
@@ -95,7 +97,7 @@ export function SwipeCard({ dog, onSwipe, onTap, isTop }: SwipeCardProps) {
           </div>
           <div className="flex items-center gap-1 mt-2 text-white/50">
             <Info className="h-3.5 w-3.5" />
-            <span className="text-xs">შეეხე დეტალებისთვის</span>
+            <span className="text-xs">{t('card.tapHint')}</span>
           </div>
         </div>
       </div>

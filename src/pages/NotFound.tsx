@@ -1,7 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useT } from "@/contexts/Locale";
 
 const NotFound = () => {
+  const t = useT();
   const location = useLocation();
 
   useEffect(() => {
@@ -9,12 +11,12 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-primary-foreground/70">Oops! Page not found</p>
+        <h1 className="mb-4 text-4xl font-bold text-foreground">404</h1>
+        <p className="mb-4 text-xl text-muted-foreground">{t('notFound.title')}</p>
         <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
+          {t('notFound.back')}
         </a>
       </div>
     </div>

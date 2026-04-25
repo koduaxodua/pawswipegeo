@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PawPrint } from 'lucide-react';
+import { useLocale } from '@/contexts/Locale';
 
 interface AdBannerProps {
   onDismiss: () => void;
@@ -17,6 +18,7 @@ declare global {
 }
 
 export function AdBanner({ onDismiss }: AdBannerProps) {
+  const { locale } = useLocale();
   const adRef = useRef<HTMLModElement>(null);
   const pushed = useRef(false);
 
@@ -40,7 +42,7 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
       className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl glass-strong p-6 text-center"
     >
       <div className="absolute top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider text-primary-foreground/50">
-        რეკლამა
+        {locale === 'en' ? 'Ad' : 'რეკლამა'}
       </div>
 
       {/* Real AdSense unit */}
@@ -58,13 +60,15 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
       <div className="flex flex-col items-center gap-3 mt-4">
         <PawPrint className="h-10 w-10 text-primary" />
         <h3 className="text-lg font-semibold text-primary-foreground">
-          ცხოველების საუკეთესო საკვები 🐾
+          {locale === 'en' ? 'Best food for your pet 🐾' : 'ცხოველების საუკეთესო საკვები 🐾'}
         </h3>
         <p className="text-sm text-primary-foreground/70 max-w-xs">
-          მაღალი ხარისხის საკვები და აქსესუარები შენი ოთხფეხა მეგობრისთვის
+          {locale === 'en'
+            ? 'High-quality food and accessories for your four-legged friend'
+            : 'მაღალი ხარისხის საკვები და აქსესუარები შენი ოთხფეხა მეგობრისთვის'}
         </p>
         <span className="text-xs text-primary-foreground/40">
-          (სარეკლამო ადგილი — pet სფეროს რეკლამები)
+          {locale === 'en' ? '(Ad slot — pet care)' : '(სარეკლამო ადგილი — pet სფეროს რეკლამები)'}
         </span>
       </div>
 
@@ -72,7 +76,7 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
         onClick={onDismiss}
         className="mt-6 inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
       >
-        გაგრძელება →
+        {locale === 'en' ? 'Continue →' : 'გაგრძელება →'}
       </button>
     </motion.div>
   );

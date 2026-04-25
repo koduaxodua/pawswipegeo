@@ -6,9 +6,11 @@ import { useAdminMode } from '@/contexts/AdminMode';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
+import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
 export default function Admin() {
+  const t = useT();
   const { dogs } = useDogs();
   const { requestedIds, cancelRequest, clearAll } = useDeleteRequests();
   const { exit } = useAdminMode();
@@ -18,7 +20,7 @@ export default function Admin() {
   const requestedDogs = dogs.filter(d => requestedIds.includes(d.id));
 
   const handleRealDelete = async (dog: Dog) => {
-    if (!confirm(`დარწმუნებული ხარ რომ გინდა "${dog.name}"-ის სამუდამოდ წაშლა?`)) return;
+    if (!confirm(t('admin.delete.confirm', { name: dog.name }))) return;
     setDeleting(dog.id);
     try {
       if (isSupabaseConfigured && supabase) {
@@ -26,22 +28,22 @@ export default function Admin() {
         if (error) {
           if (error.message.includes('row-level security') || error.code === '42501') {
             toast({
-              title: 'წაშლა DB-დან ვერ მოხერხდა',
-              description: 'RLS პოლისი მხოლოდ ატვირთვის ავტორს უშვებს. გამოიყენე Supabase Studio.',
+              title: t('admin.delete.rls'),
+              description: t('admin.delete.rlsDesc'),
               variant: 'destructive',
             });
           } else {
             toast({ title: `Error: ${error.message}`, variant: 'destructive' });
           }
         } else {
-          toast({ title: `${dog.name} წაშლილია DB-დან ✓` });
+          toast({ title: t('admin.deleted.db', { name: dog.name }) });
         }
       } else {
-        toast({ title: `${dog.name} წაშლილია (ლოკალურად)` });
+        toast({ title: t('admin.deleted.local', { name: dog.name }) });
       }
       cancelRequest(dog.id);
     } catch (e) {
-      toast({ title: 'Error', description: String(e), variant: 'destructive' });
+      toast({ title: t('common.error'), description: String(e), variant: 'destructive' });
     } finally {
       setDeleting(null);
     }
@@ -54,8 +56,8 @@ export default function Admin() {
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-5 w-5 text-destructive" />
           <div>
-            <h1 className="text-base font-bold text-foreground">ადმინ რეჟიმი</h1>
-            <p className="text-[10px] text-muted-foreground">გვერდის რეფრეშზე გაქრება</p>
+            <h1 className="text-base font-bold text-foreground">{t('admin.title')}</h1>
+            <p className="text-[10px] text-muted-foreground">{t('admin.subtitle')}</p>
           </div>
         </div>
         <button
@@ -63,25 +65,25 @@ export default function Admin() {
           className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-secondary text-foreground hover:bg-secondary/80 transition"
         >
           <LogOut className="h-3.5 w-3.5" />
-          გასვლა
+          {t('admin.exit')}
         </button>
       </div>
 
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-foreground">
-          წაშლის თხოვნები ({requestedDogs.length})
+          {t('admin.heading', { n: requestedDogs.length })}
         </h2>
         {requestedIds.length > 0 && (
           <button
             onClick={() => {
-              if (confirm('ყველა თხოვნის გასუფთავება?')) {
+              if (confirm(t('admin.clearAll.confirm'))) {
                 clearAll();
-                toast({ title: 'სია გასუფთავდა' });
+                toast({ title: t('admin.cleared') });
               }
             }}
             className="text-xs text-muted-foreground hover:text-foreground"
           >
-            სიის გასუფთავება
+            {t('admin.clearAll')}
           </button>
         )}
       </div>
@@ -90,10 +92,10 @@ export default function Admin() {
         <div className="glass rounded-2xl p-8 text-center">
           <AlertCircle className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-sm text-muted-foreground">
-            წაშლის თხოვნები არ არის.
+            {t('admin.empty.title')}
           </p>
           <p className="text-[11px] text-muted-foreground/70 mt-2">
-            მომხმარებლები ცხოველის პროფილიდან გზავნიან თხოვნებს.
+            {t('admin.empty.sub')}
           </p>
         </div>
       ) : (
@@ -121,7 +123,7 @@ export default function Admin() {
                   </div>
                   <div className="inline-flex items-center gap-1 text-[10px] text-primary mt-0.5">
                     <Eye className="h-3 w-3" />
-                    პროფილი
+                    {t('admin.profile')}
                   </div>
                 </div>
               </button>
@@ -131,7 +133,7 @@ export default function Admin() {
                 className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-destructive text-destructive-foreground text-xs font-medium hover:opacity-90 transition disabled:opacity-50"
               >
                 <Trash2 className="h-3.5 w-3.5" />
-                {deleting === dog.id ? 'იშლება...' : 'წაშლა'}
+                {deleting === dog.id ? t('admin.deleting') : t('admin.delete')}
               </button>
             </div>
           ))}

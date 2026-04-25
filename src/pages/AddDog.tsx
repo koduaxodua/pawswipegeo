@@ -4,6 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LocationPicker } from '@/components/LocationPicker';
+import { useT } from '@/contexts/Locale';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -32,6 +33,7 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
 };
 
 export default function AddDog() {
+  const t = useT();
   const { addDog } = useDogs();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -59,11 +61,11 @@ export default function AddDog() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      toast({ title: 'გთხოვთ აირჩიოთ სურათი', variant: 'destructive' });
+      toast({ title: t('addDog.toast.notImage'), variant: 'destructive' });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast({ title: 'სურათი ძალიან დიდია (მაქს. 10MB)', variant: 'destructive' });
+      toast({ title: t('addDog.toast.tooBig'), variant: 'destructive' });
       return;
     }
     setUploading(true);
@@ -71,9 +73,9 @@ export default function AddDog() {
       const compressed = await compressImage(file);
       update('photo', compressed);
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
-      toast({ title: `ფოტო ატვირთულია (${sizeKB}KB) ✓` });
+      toast({ title: t('addDog.toast.uploaded', { size: sizeKB }) });
     } catch {
-      toast({ title: 'ფოტოს დამუშავება ვერ მოხერხდა', variant: 'destructive' });
+      toast({ title: t('addDog.toast.failed'), variant: 'destructive' });
     } finally {
       setUploading(false);
     }
@@ -83,17 +85,17 @@ export default function AddDog() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.photo || !form.caretakerPhone || !form.location) {
-      toast({ title: 'გთხოვთ შეავსოთ სავალდებულო ველები და აირჩიე ლოკაცია რუკაზე', variant: 'destructive' });
+      toast({ title: t('addDog.toast.requiredFields'), variant: 'destructive' });
       return;
     }
     setSubmitting(true);
     try {
       await addDog(form);
-      toast({ title: `${form.name} წარმატებით დაემატა! 🐾` });
+      toast({ title: t('addDog.toast.success', { name: form.name }) });
       navigate('/');
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'უცნობი შეცდომა';
-      toast({ title: `დამატება ვერ მოხერხდა: ${msg}`, variant: 'destructive' });
+      const msg = err instanceof Error ? err.message : 'unknown';
+      toast({ title: t('addDog.toast.addFailed', { error: msg }), variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -103,13 +105,13 @@ export default function AddDog() {
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Plus className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">ცხოველის დამატება</h1>
+        <h1 className="text-2xl font-bold text-foreground">{t('addDog.title')}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Photo upload */}
         <div className="glass rounded-2xl p-4">
-          <label className="block text-sm font-medium text-primary-foreground mb-2">ფოტო *</label>
+          <label className="block text-sm font-medium text-primary-foreground mb-2">{t('addDog.photo')}</label>
           <input
             ref={fileInputRef}
             type="file"
@@ -138,13 +140,13 @@ export default function AddDog() {
               {uploading ? (
                 <>
                   <Loader2 className="h-8 w-8 animate-spin" />
-                  <span className="text-sm font-medium">მუშავდება...</span>
+                  <span className="text-sm font-medium">{t('addDog.uploading')}</span>
                 </>
               ) : (
                 <>
                   <Upload className="h-8 w-8" />
-                  <span className="text-sm font-medium">ფოტოს ატვირთვა</span>
-                  <span className="text-xs">მაქს. 10MB, ავტო-კომპრესია</span>
+                  <span className="text-sm font-medium">{t('addDog.upload')}</span>
+                  <span className="text-xs">{t('addDog.upload.hint')}</span>
                 </>
               )}
             </button>
@@ -164,13 +166,13 @@ export default function AddDog() {
 
         {/* Two-column grid on tablet+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="სახელი *" value={form.name} onChange={v => update('name', v)} placeholder="მაგ: ბობი" />
-          <FormField label="ასაკი" value={form.age} onChange={v => update('age', v)} placeholder="მაგ: 2 წელი" />
-          <FormField label="ჯიში" value={form.breed} onChange={v => update('breed', v)} placeholder="მაგ: ნარევი" />
+          <FormField label={t('addDog.field.name')} value={form.name} onChange={v => update('name', v)} placeholder={t('addDog.field.namePh')} />
+          <FormField label={t('addDog.field.age')} value={form.age} onChange={v => update('age', v)} placeholder={t('addDog.field.agePh')} />
+          <FormField label={t('addDog.field.breed')} value={form.breed} onChange={v => update('breed', v)} placeholder={t('addDog.field.breedPh')} />
         </div>
 
         <div className="glass rounded-2xl p-4">
-          <label className="block text-sm font-medium text-primary-foreground mb-2">სქესი</label>
+          <label className="block text-sm font-medium text-primary-foreground mb-2">{t('addDog.field.gender')}</label>
           <div className="flex gap-3">
             {(['მამრობითი', 'მდედრობითი'] as const).map(g => (
               <button
@@ -183,19 +185,19 @@ export default function AddDog() {
                     : 'bg-secondary text-secondary-foreground'
                 }`}
               >
-                {g === 'მამრობითი' ? '♂ მამრობითი' : '♀ მდედრობითი'}
+                {g === 'მამრობითი' ? t('addDog.gender.male') : t('addDog.gender.female')}
               </button>
             ))}
           </div>
         </div>
 
-        <FormField label="ხასიათი" value={form.personality} onChange={v => update('personality', v)} placeholder="მაგ: მეგობრული, მშვიდი" multiline />
-        <FormField label="ჯანმრთელობა" value={form.health} onChange={v => update('health', v)} placeholder="მაგ: აცრილი, ჯანმრთელი" />
-        <FormField label="აღწერა" value={form.description} onChange={v => update('description', v)} placeholder="მოკლე აღწერა ძაღლის შესახებ..." multiline />
+        <FormField label={t('addDog.field.personality')} value={form.personality} onChange={v => update('personality', v)} placeholder={t('addDog.field.personalityPh')} multiline />
+        <FormField label={t('addDog.field.health')} value={form.health} onChange={v => update('health', v)} placeholder={t('addDog.field.healthPh')} />
+        <FormField label={t('addDog.field.description')} value={form.description} onChange={v => update('description', v)} placeholder={t('addDog.field.descriptionPh')} multiline />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="თქვენი სახელი" value={form.caretakerName} onChange={v => update('caretakerName', v)} placeholder="მაგ: ნინო" />
-          <FormField label="საკონტაქტო ნომერი *" value={form.caretakerPhone} onChange={v => update('caretakerPhone', v)} placeholder="+995 5XX XX XX XX" />
+          <FormField label={t('addDog.field.caretakerName')} value={form.caretakerName} onChange={v => update('caretakerName', v)} placeholder={t('addDog.field.caretakerNamePh')} />
+          <FormField label={t('addDog.field.phone')} value={form.caretakerPhone} onChange={v => update('caretakerPhone', v)} placeholder={t('addDog.field.phonePh')} />
         </div>
 
         <button
@@ -204,7 +206,7 @@ export default function AddDog() {
           className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <PawPrint className="h-5 w-5" />}
-          {submitting ? 'იტვირთება...' : 'ცხოველის დამატება'}
+          {submitting ? t('addDog.submitting') : t('addDog.submit')}
         </button>
       </form>
     </div>

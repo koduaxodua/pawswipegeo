@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
 import { Tutorial } from "@/components/Tutorial";
 import { AdminModeProvider, useAdminMode } from "@/contexts/AdminMode";
+import { LocaleProvider } from "@/contexts/Locale";
 import Index from "./pages/Index";
 import Favorites from "./pages/Favorites";
 import AddDog from "./pages/AddDog";
@@ -23,6 +24,7 @@ function TermsOrAdmin() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <LocaleProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -41,6 +43,7 @@ const App = () => (
         </AdminModeProvider>
       </BrowserRouter>
     </TooltipProvider>
+    </LocaleProvider>
   </QueryClientProvider>
 );
 

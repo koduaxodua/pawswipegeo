@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { MapPin, Phone, Heart, Calendar, Shield, Trash2, Check } from 'lucide-react';
 import { useDeleteRequests } from '@/hooks/useDeleteRequests';
 import { toast } from '@/hooks/use-toast';
+import { useT, useLocale } from '@/contexts/Locale';
 
 interface Props {
   dog: Dog;
@@ -11,16 +12,26 @@ interface Props {
 }
 
 export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
+  const t = useT();
+  const { locale } = useLocale();
   const { isRequested, requestDelete, cancelRequest } = useDeleteRequests();
   const requested = isRequested(dog.id);
+
+  // Translate gender enum at display time (data is stored in Georgian)
+  const genderLabel =
+    locale === 'en' && dog.gender
+      ? dog.gender === 'მამრობითი'
+        ? t('addDog.gender.value.male')
+        : t('addDog.gender.value.female')
+      : dog.gender;
 
   const handleDeleteRequest = () => {
     if (requested) {
       cancelRequest(dog.id);
-      toast({ title: 'წაშლის თხოვნა გაუქმდა' });
+      toast({ title: t('detail.deleteRequest.cancelToast') });
     } else {
       requestDelete(dog.id);
-      toast({ title: '🗑 წაშლის თხოვნა გაგზავნილია' });
+      toast({ title: t('detail.deleteRequest.toast') });
     }
   };
 
@@ -40,35 +51,35 @@ export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
           />
 
           <div className="grid grid-cols-2 gap-2">
-            <InfoChip icon={<Calendar className="h-3.5 w-3.5" />} label="ასაკი" value={dog.age} />
-            <InfoChip icon={<Heart className="h-3.5 w-3.5" />} label="სქესი" value={dog.gender} />
-            <InfoChip icon={<MapPin className="h-3.5 w-3.5" />} label="ლოკაცია" value={dog.location} />
-            <InfoChip icon={<Shield className="h-3.5 w-3.5" />} label="ჯიში" value={dog.breed} />
+            <InfoChip icon={<Calendar className="h-3.5 w-3.5" />} label={t('detail.label.age')} value={dog.age} />
+            <InfoChip icon={<Heart className="h-3.5 w-3.5" />} label={t('detail.label.gender')} value={genderLabel} />
+            <InfoChip icon={<MapPin className="h-3.5 w-3.5" />} label={t('detail.label.location')} value={dog.location} />
+            <InfoChip icon={<Shield className="h-3.5 w-3.5" />} label={t('detail.label.breed')} value={dog.breed} />
           </div>
 
           {dog.description && (
             <div className="glass rounded-xl p-3 space-y-1.5">
-              <h3 className="text-sm font-semibold text-foreground">აღწერა</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('detail.section.description')}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">{dog.description}</p>
             </div>
           )}
 
           {dog.personality && (
             <div className="glass rounded-xl p-3 space-y-1.5">
-              <h3 className="text-sm font-semibold text-foreground">ხასიათი</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('detail.section.personality')}</h3>
               <p className="text-xs text-muted-foreground">{dog.personality}</p>
             </div>
           )}
 
           {dog.health && (
             <div className="glass rounded-xl p-3 space-y-1.5">
-              <h3 className="text-sm font-semibold text-foreground">ჯანმრთელობა</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('detail.section.health')}</h3>
               <p className="text-xs text-muted-foreground">{dog.health}</p>
             </div>
           )}
 
           <div className="glass rounded-xl p-3">
-            <h3 className="text-sm font-semibold text-foreground mb-1.5">მიმკედლებელი</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-1.5">{t('detail.section.caretaker')}</h3>
             {dog.caretakerName && <p className="text-xs text-muted-foreground">{dog.caretakerName}</p>}
             <a
               href={`tel:${dog.caretakerPhone.replace(/\s/g, '')}`}
@@ -88,7 +99,7 @@ export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
             }`}
           >
             {requested ? <Check className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
-            {requested ? 'წაშლის თხოვნა გაგზავნილია — გაუქმება' : 'წაშლის თხოვნის გაგზავნა'}
+            {requested ? t('detail.deleteRequest.cancel') : t('detail.deleteRequest')}
           </button>
         </div>
       </SheetContent>

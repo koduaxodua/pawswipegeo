@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MapPin, LocateFixed, Loader2, Check, Search, X } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useT, useLocale } from '@/contexts/Locale';
 
 interface NominatimResult {
   place_id: number;
@@ -50,6 +51,8 @@ interface LocationPickerProps {
  *  2. Type-ahead search via OpenStreetMap Nominatim (Georgian / English supported)
  */
 export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPickerProps) {
+  const t = useT();
+  const { locale } = useLocale();
   const [query, setQuery] = useState(locationLabel);
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
@@ -134,7 +137,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
   const handleUseCurrentLocation = () => {
     if (!navigator.geolocation) {
-      toast({ title: 'Geolocation არ არის ხელმისაწვდომი', variant: 'destructive' });
+      toast({ title: t('loc.gpsBlocked'), variant: 'destructive' });
       return;
     }
     setLocating(true);
@@ -149,7 +152,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
           url.searchParams.set('format', 'json');
           url.searchParams.set('addressdetails', '1');
           url.searchParams.set('zoom', '18'); // building-level precision
-          url.searchParams.set('accept-language', 'ka,en');
+          url.searchParams.set('accept-language', locale === 'en' ? 'en,ka' : 'ka,en');
           const res = await fetch(url.toString());
           if (res.ok) {
             const data = await res.json();
@@ -161,13 +164,13 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         onChange({ lat: latitude, lng: longitude, label });
         setQuery(label);
         setShowResults(false);
-        toast({ title: 'მიმდინარე ლოკაცია დაყენებულია ✓' });
+        toast({ title: locale === 'en' ? 'Current location set ✓' : 'მიმდინარე ლოკაცია დაყენებულია ✓' });
         setLocating(false);
       },
       err => {
         setLocating(false);
         toast({
-          title: 'ვერ მოხერხდა ლოკაციის წაკითხვა',
+          title: t('loc.gpsFailed'),
           description: err.message,
           variant: 'destructive',
         });
@@ -187,9 +190,9 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
   return (
     <div className="glass rounded-2xl p-4 space-y-3">
-      <label className="flex items-center gap-1.5 text-sm font-medium text-primary-foreground">
+      <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
         <MapPin className="h-4 w-4 text-primary" />
-        ლოკაცია რუკაზე *
+        {t('loc.title')}
       </label>
 
       {/* Current location button — primary action */}
@@ -202,17 +205,19 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         {locating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            მდებარეობის ძებნა...
+            {t('loc.locating')}
           </>
         ) : (
           <>
             <LocateFixed className="h-4 w-4" />
-            ჩემი მიმდინარე ლოკაციის გამოყენება
+            {t('loc.useGPS')}
           </>
         )}
       </button>
 
-      <div className="text-center text-xs text-primary-foreground/40">ან მოძებნე მისამართი</div>
+      <div className="text-center text-xs text-muted-foreground">
+        {locale === 'en' ? 'or search address' : 'ან მოძებნე მისამართი'}
+      </div>
 
       {/* Search input with autocomplete (dropdown rendered in a portal to escape stacking contexts) */}
       <div ref={inputWrapRef} className="relative">
@@ -222,15 +227,15 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
             value={query}
             onChange={e => setQuery(e.target.value)}
             onFocus={() => results.length && setShowResults(true)}
-            placeholder="მაგ: ვაკე, საბურთალო, Rustaveli Ave..."
-            className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none"
+            placeholder={t('loc.search')}
+            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
           />
           {searching && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
           {query && !searching && (
             <button
               type="button"
               onClick={() => { setQuery(''); setResults([]); }}
-              className="text-muted-foreground hover:text-primary-foreground"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -256,10 +261,10 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
               onClick={() => handlePickResult(r)}
               className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
             >
-              <div className="text-sm text-primary-foreground line-clamp-1">
+              <div className="text-sm text-foreground line-clamp-1">
                 {r.display_name.split(',').slice(0, 2).join(', ')}
               </div>
-              <div className="text-xs text-primary-foreground/50 line-clamp-1">
+              <div className="text-xs text-muted-foreground line-clamp-1">
                 {r.display_name}
               </div>
             </button>
@@ -271,7 +276,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
       {hasCoords && (
         <div className="flex items-center gap-1.5 text-xs text-primary">
           <Check className="h-3 w-3" />
-          კოორდინატები შენახულია: {lat!.toFixed(4)}, {lng!.toFixed(4)}
+          {t('loc.selected')} {lat!.toFixed(4)}, {lng!.toFixed(4)}
         </div>
       )}
     </div>

@@ -1,39 +1,25 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, X, Plus, ChevronRight, SkipForward } from 'lucide-react';
+import { useT, type TKey } from '@/contexts/Locale';
 
 const TUTORIAL_KEY = 'pawswipe_tutorial_seen_v1';
 
 interface Step {
-  title: string;
-  description: string;
+  titleKey: TKey;
+  descKey: TKey;
   visual: 'welcome' | 'swipe-right' | 'swipe-left' | 'add';
 }
 
 const steps: Step[] = [
-  {
-    title: 'მოგესალმებით 🐾',
-    description: 'Pet Rescue Georgia — სვაიპით იპოვე შენი ახალი ოთხფეხა მეგობარი.',
-    visual: 'welcome',
-  },
-  {
-    title: 'მარჯვნივ — მომწონს',
-    description: 'სვაიპე ბარათი მარჯვნივ ან დააჭირე ❤️ ღილაკს, რომ მოიწონო ცხოველი. იპოვი მათ "მოწონებულ" გვერდზე.',
-    visual: 'swipe-right',
-  },
-  {
-    title: 'მარცხნივ — შემდეგი',
-    description: 'სვაიპე მარცხნივ ან დააჭირე ✕ ღილაკს, რომ შემდეგზე გადახვიდე.',
-    visual: 'swipe-left',
-  },
-  {
-    title: 'ცხოველის დამატება',
-    description: 'ქვედა მენიუში "+" ღილაკი — თუ შენ იცი მიუსაფარი ცხოველი, აიტვირთე მისი ფოტო და მონაცემები. ყველა მომხმარებელი ნახავს.',
-    visual: 'add',
-  },
+  { titleKey: 'tutorial.s1.title', descKey: 'tutorial.s1.desc', visual: 'welcome' },
+  { titleKey: 'tutorial.s2.title', descKey: 'tutorial.s2.desc', visual: 'swipe-right' },
+  { titleKey: 'tutorial.s3.title', descKey: 'tutorial.s3.desc', visual: 'swipe-left' },
+  { titleKey: 'tutorial.s4.title', descKey: 'tutorial.s4.desc', visual: 'add' },
 ];
 
 export function Tutorial() {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -72,7 +58,7 @@ export function Tutorial() {
           onClick={close}
           className="absolute top-4 right-4 inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground text-sm px-3 py-1.5 rounded-full transition"
         >
-          გამოტოვება
+          {t('tutorial.skip')}
           <SkipForward className="h-4 w-4" />
         </button>
 
@@ -101,14 +87,14 @@ export function Tutorial() {
             ))}
           </div>
 
-          <h2 className="text-2xl font-bold text-foreground mb-3">{current.title}</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-8">{current.description}</p>
+          <h2 className="text-2xl font-bold text-foreground mb-3">{t(current.titleKey)}</h2>
+          <p className="text-muted-foreground text-sm leading-relaxed mb-8">{t(current.descKey)}</p>
 
           <button
             onClick={next}
             className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98]"
           >
-            {step === steps.length - 1 ? 'დაწყება' : 'შემდეგი'}
+            {step === steps.length - 1 ? t('tutorial.start') : t('tutorial.next')}
             <ChevronRight className="h-5 w-5" />
           </button>
         </motion.div>
@@ -118,6 +104,7 @@ export function Tutorial() {
 }
 
 function Visual({ variant }: { variant: Step['visual'] }) {
+  const t = useT();
   if (variant === 'welcome') {
     return (
       <motion.div
@@ -140,7 +127,7 @@ function Visual({ variant }: { variant: Step['visual'] }) {
         >
           <div className="text-5xl">🐶</div>
           <div className="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-bold border-2 border-green-500">
-            მომწონს ❤️
+            {t('card.like')}
           </div>
         </motion.div>
         <div className="absolute -right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-accent/20 flex items-center justify-center">
@@ -160,7 +147,7 @@ function Visual({ variant }: { variant: Step['visual'] }) {
         >
           <div className="text-5xl">🐱</div>
           <div className="px-3 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold border-2 border-red-500">
-            შემდეგი ✕
+            {t('card.nope')}
           </div>
         </motion.div>
         <div className="absolute -left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-destructive/20 flex items-center justify-center">
@@ -180,7 +167,9 @@ function Visual({ variant }: { variant: Step['visual'] }) {
       >
         <Plus className="h-10 w-10 text-primary-foreground" />
       </motion.div>
-      <div className="text-xs text-muted-foreground">ქვედა მენიუს ცენტრში</div>
+      <div className="text-xs text-muted-foreground">
+        {t('nav.add')} ↓
+      </div>
     </div>
   );
 }

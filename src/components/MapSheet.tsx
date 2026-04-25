@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import type { Dog } from '@/data/dogs';
 import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
 import { haversineKm, formatDistance } from '@/lib/geo';
+import { useT } from '@/contexts/Locale';
 import { MapPin, Crosshair } from 'lucide-react';
 
 interface MapSheetProps {
@@ -37,6 +38,7 @@ const userStyle: L.PathOptions & { radius: number } = {
 };
 
 export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog }: MapSheetProps) {
+  const t = useT();
   const [map, setMap] = useState<L.Map | null>(null);
   const markersRef = useRef<globalThis.Map<string, L.CircleMarker>>(new globalThis.Map());
   const userMarkerRef = useRef<L.CircleMarker | null>(null);
@@ -220,10 +222,10 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
         <SheetHeader className="px-4 pt-3 pb-2 flex-shrink-0">
           <SheetTitle className="flex items-center gap-2 text-foreground text-base">
             <MapPin className="h-5 w-5 text-primary" />
-            ცხოველები რუკაზე ({allDogs.length})
+            {t('map.title', { n: allDogs.length })}
             {locating && (
               <span className="text-xs text-muted-foreground ml-auto font-normal">
-                მდებარეობის ძებნა...
+                {t('map.locating')}
               </span>
             )}
           </SheetTitle>
@@ -238,7 +240,7 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
             <button
               onClick={() => map?.flyTo(userLocation, 14, { duration: 0.6 })}
               className="absolute top-3 right-3 z-[1000] glass h-10 w-10 rounded-full flex items-center justify-center text-foreground hover:scale-105 transition"
-              aria-label="ჩემი მდებარეობა"
+              aria-label={t('map.recenter')}
             >
               <Crosshair className="h-5 w-5 text-primary" />
             </button>
@@ -257,7 +259,7 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
                 <div className="text-left min-w-0">
                   <div className="font-semibold text-foreground truncate">{dog.name}, {dog.age}</div>
                   <div className="text-xs text-muted-foreground truncate">{dog.location}</div>
-                  <div className="text-[11px] text-primary mt-0.5">დააჭირე → სრული პროფილი</div>
+                  <div className="text-[11px] text-primary mt-0.5">{t('map.popcard.hint')}</div>
                 </div>
               </button>
             );
@@ -267,7 +269,7 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
         {/* LIST — nearest dogs */}
         <div className="flex-1 min-h-0 border-t border-border/50 bg-background/90 backdrop-blur flex flex-col">
           <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-muted-foreground font-medium flex-shrink-0">
-            {userLocation ? 'შენთან ახლოს' : 'ცხოველების სია'}
+            {userLocation ? t('map.list.nearby') : t('map.list.all')}
           </div>
           <div ref={listRef} className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
             {sortedDogs.map(({ dog, distance }) => {
@@ -301,10 +303,10 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
                   </div>
                   <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
                     <div className={`text-xs font-semibold ${isSelected ? 'text-primary' : 'text-foreground/80'}`}>
-                      {formatDistance(distance)}
+                      {formatDistance(distance, { meters: t('map.unitMeters'), km: t('map.unitKm') })}
                     </div>
                     {userLocation && (
-                      <div className="text-[10px] text-muted-foreground">შენგან</div>
+                      <div className="text-[10px] text-muted-foreground">{t('map.fromYou')}</div>
                     )}
                   </div>
                 </button>
