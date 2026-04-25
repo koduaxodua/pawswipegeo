@@ -15,37 +15,31 @@ interface MapSheetProps {
   onSelectDog?: (dog: Dog) => void;
 }
 
-const userIcon = L.divIcon({
-  html: `<div style="position:relative;">
-    <div style="position:absolute;inset:0;width:24px;height:24px;border-radius:9999px;background:rgba(59,130,246,0.4);animation:pulse 2s ease-out infinite;"></div>
-    <div style="position:relative;width:24px;height:24px;border-radius:9999px;background:#3b82f6;border:4px solid #fff;box-shadow:0 0 0 2px rgba(59,130,246,0.5);"></div>
-  </div>`,
-  className: 'user-marker',
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-});
-
 type DotState = 'default' | 'current' | 'selected';
 
-const dotIcon = (state: DotState) => {
-  const config = {
-    selected: { color: 'hsl(36, 89%, 54%)', size: 38, ring: '0 0 0 6px rgba(240,160,36,0.35)' },
-    current: { color: 'hsl(283, 49%, 53%)', size: 32, ring: '0 0 0 4px rgba(161,78,193,0.3)' },
-    default: { color: 'hsl(283, 49%, 53%)', size: 26, ring: '0 2px 8px rgba(0,0,0,0.5)' },
-  }[state];
+const dotStyle = (state: DotState): L.PathOptions & { radius: number } => {
+  if (state === 'selected') {
+    return { radius: 18, fillColor: 'hsl(36, 89%, 54%)', fillOpacity: 1, color: '#fff', weight: 4, opacity: 1 };
+  }
+  if (state === 'current') {
+    return { radius: 14, fillColor: 'hsl(283, 49%, 53%)', fillOpacity: 1, color: '#fff', weight: 4, opacity: 1 };
+  }
+  return { radius: 11, fillColor: 'hsl(283, 49%, 53%)', fillOpacity: 1, color: '#fff', weight: 3, opacity: 1 };
+};
 
-  return L.divIcon({
-    html: `<div style="width:${config.size}px;height:${config.size}px;border-radius:9999px;background:${config.color};border:4px solid #fff;box-shadow:${config.ring};cursor:pointer;transition:transform 0.2s;"></div>`,
-    className: 'pet-dot',
-    iconSize: [config.size, config.size],
-    iconAnchor: [config.size / 2, config.size / 2],
-  });
+const userStyle: L.PathOptions & { radius: number } = {
+  radius: 9,
+  fillColor: '#3b82f6',
+  fillOpacity: 1,
+  color: '#fff',
+  weight: 3,
+  opacity: 1,
 };
 
 export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog }: MapSheetProps) {
   const [map, setMap] = useState<L.Map | null>(null);
-  const markersRef = useRef<globalThis.Map<string, L.Marker>>(new globalThis.Map());
-  const userMarkerRef = useRef<L.Marker | null>(null);
+  const markersRef = useRef<globalThis.Map<string, L.CircleMarker>>(new globalThis.Map());
+  const userMarkerRef = useRef<L.CircleMarker | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [locating, setLocating] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -111,55 +105,65 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
     return () => ro.disconnect();
   }, [map]);
 
-  // Sync dog markers
+  // Create dog markers when map or dataset changes (one-shot per allDogs)
   useEffect(() => {
     if (!map) return;
-    const seen = new Set<string>();
+
+    // Wipe any existing markers and rebuild — robust against state churn
+    markersRef.current.forEach(m => {
+      try { m.remove(); } catch { /* ignore */ }
+    });
+    markersRef.current.clear();
 
     allDogs.forEach(dog => {
       const [lat, lng] = getDogCoords(dog);
       if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
-      seen.add(dog.id);
 
-      const state: DotState =
-        selectedId === dog.id ? 'selected' : currentDog?.id === dog.id ? 'current' : 'default';
-
-      const existing = markersRef.current.get(dog.id);
-      if (existing) {
-        existing.setLatLng([lat, lng]);
-        existing.setIcon(dotIcon(state));
-        existing.setZIndexOffset(state === 'selected' ? 1000 : state === 'current' ? 500 : 0);
-      } else {
-        const m = L.marker([lat, lng], {
-          icon: dotIcon(state),
-          zIndexOffset: state === 'selected' ? 1000 : state === 'current' ? 500 : 0,
-        }).addTo(map);
-        m.bindTooltip(dog.name, { direction: 'top', offset: [0, -16], opacity: 0.95 });
-        // Click on dot = highlight + show pop-card. Pop-card tap opens full profile.
-        // (Closing this Sheet inside Leaflet's own click handler crashes Radix.)
+      try {
+        const m = L.circleMarker([lat, lng], dotStyle('default')).addTo(map);
+        m.bindTooltip(dog.name, { direction: 'top', offset: [0, -8], opacity: 0.95 });
         m.on('click', () => setSelectedId(dog.id));
         markersRef.current.set(dog.id, m);
+      } catch (err) {
+        console.warn('[MapSheet] failed to add marker for', dog.id, err);
       }
     });
 
-    // Remove markers no longer in allDogs
-    Array.from(markersRef.current.keys()).forEach(id => {
-      if (!seen.has(id)) {
-        markersRef.current.get(id)?.remove();
-        markersRef.current.delete(id);
+    return () => {
+      markersRef.current.forEach(m => {
+        try { m.remove(); } catch { /* ignore */ }
+      });
+      markersRef.current.clear();
+    };
+  }, [map, allDogs]);
+
+  // Update marker styles based on selection — never recreates markers
+  useEffect(() => {
+    if (!map) return;
+    markersRef.current.forEach((marker, id) => {
+      const state: DotState =
+        selectedId === id ? 'selected' : currentDog?.id === id ? 'current' : 'default';
+      try {
+        marker.setStyle(dotStyle(state));
+        if (state === 'selected') marker.bringToFront();
+      } catch (err) {
+        console.warn('[MapSheet] setStyle failed', err);
       }
     });
-  }, [map, allDogs, currentDog, selectedId, onSelectDog]);
+  }, [map, selectedId, currentDog]);
 
   // Sync user location marker
   useEffect(() => {
     if (!map || !userLocation) return;
     if (userMarkerRef.current) {
-      userMarkerRef.current.setLatLng(userLocation);
+      try { userMarkerRef.current.setLatLng(userLocation); } catch { /* ignore */ }
     } else {
-      userMarkerRef.current = L.marker(userLocation, { icon: userIcon, zIndexOffset: 2000 })
-        .addTo(map)
-        .bindTooltip('თქვენ', { direction: 'top', offset: [0, -10] });
+      try {
+        userMarkerRef.current = L.circleMarker(userLocation, userStyle).addTo(map);
+        userMarkerRef.current.bindTooltip('თქვენ', { direction: 'top', offset: [0, -10] });
+      } catch (err) {
+        console.warn('[MapSheet] user marker failed', err);
+      }
     }
   }, [map, userLocation]);
 
