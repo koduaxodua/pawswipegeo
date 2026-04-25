@@ -4,11 +4,14 @@ import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { MapPin, Phone, Trash2, Heart, X } from 'lucide-react';
 import { useT } from '@/contexts/Locale';
+import { useTranslatedDogs } from '@/hooks/useTranslatedDog';
 import type { Dog } from '@/data/dogs';
 
 export default function Favorites() {
   const t = useT();
-  const { likedDogs, dislikedDogs, unlikeDog, removeDisliked, likeDog, dislikeDog } = useLikedDogs();
+  const { likedDogs: rawLiked, dislikedDogs: rawDisliked, unlikeDog, removeDisliked, likeDog, dislikeDog } = useLikedDogs();
+  const likedDogs = useTranslatedDogs(rawLiked);
+  const dislikedDogs = useTranslatedDogs(rawDisliked);
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
 
   return (

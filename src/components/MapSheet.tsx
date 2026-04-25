@@ -6,6 +6,7 @@ import type { Dog } from '@/data/dogs';
 import { DEFAULT_CENTER, getDogCoords } from '@/data/locations';
 import { haversineKm, formatDistance } from '@/lib/geo';
 import { useT } from '@/contexts/Locale';
+import { useTranslatedDogs, useTranslatedDog } from '@/hooks/useTranslatedDog';
 import { MapPin, Crosshair } from 'lucide-react';
 
 interface MapSheetProps {
@@ -37,8 +38,10 @@ const userStyle: L.PathOptions & { radius: number } = {
   opacity: 1,
 };
 
-export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog }: MapSheetProps) {
+export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: rawAll, onSelectDog }: MapSheetProps) {
   const t = useT();
+  const allDogs = useTranslatedDogs(rawAll);
+  const currentDog = useTranslatedDog(rawCurrent);
   const [map, setMap] = useState<L.Map | null>(null);
   const markersRef = useRef<globalThis.Map<string, L.CircleMarker>>(new globalThis.Map());
   const userMarkerRef = useRef<L.CircleMarker | null>(null);

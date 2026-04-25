@@ -4,6 +4,7 @@ import { MapPin, Phone, Heart, Calendar, Shield, Trash2, Check } from 'lucide-re
 import { useDeleteRequests } from '@/hooks/useDeleteRequests';
 import { toast } from '@/hooks/use-toast';
 import { useT, useLocale } from '@/contexts/Locale';
+import { useTranslatedDog } from '@/hooks/useTranslatedDog';
 
 interface Props {
   dog: Dog;
@@ -11,9 +12,10 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function DogDetailSheet({ dog, open, onOpenChange }: Props) {
+export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
   const t = useT();
   const { locale } = useLocale();
+  const dog = useTranslatedDog(rawDog) ?? rawDog;
   const { isRequested, requestDelete, cancelRequest } = useDeleteRequests();
   const requested = isRequested(dog.id);
 

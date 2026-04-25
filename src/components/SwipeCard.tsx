@@ -3,6 +3,7 @@ import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import type { Dog } from '@/data/dogs';
 import { MapPin, Info } from 'lucide-react';
 import { useT } from '@/contexts/Locale';
+import { useTranslatedDog } from '@/hooks/useTranslatedDog';
 
 interface SwipeCardProps {
   dog: Dog;
@@ -11,8 +12,9 @@ interface SwipeCardProps {
   isTop: boolean;
 }
 
-export function SwipeCard({ dog, onSwipe, onTap, isTop }: SwipeCardProps) {
+export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop }: SwipeCardProps) {
   const t = useT();
+  const dog = useTranslatedDog(rawDog) ?? rawDog;
   const dragRef = useRef(false);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
