@@ -6,14 +6,21 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
 import { TopRightLogo } from "@/components/TopRightLogo";
 import { Tutorial } from "@/components/Tutorial";
+import { AdminModeProvider, useAdminMode } from "@/contexts/AdminMode";
 import Index from "./pages/Index";
 import Favorites from "./pages/Favorites";
 import AddDog from "./pages/AddDog";
 import Missions from "./pages/Missions";
 import Terms from "./pages/Terms";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function TermsOrAdmin() {
+  const { isAdmin } = useAdminMode();
+  return isAdmin ? <Admin /> : <Terms />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -21,17 +28,19 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/favorites" element={<Favorites />} />
-          <Route path="/add" element={<AddDog />} />
-          <Route path="/missions" element={<Missions />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-        <BottomNav />
-        <TopRightLogo />
-        <Tutorial />
+        <AdminModeProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/add" element={<AddDog />} />
+            <Route path="/missions" element={<Missions />} />
+            <Route path="/terms" element={<TermsOrAdmin />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <BottomNav />
+          <TopRightLogo />
+          <Tutorial />
+        </AdminModeProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

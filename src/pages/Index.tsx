@@ -167,6 +167,10 @@ export default function Index() {
         onOpenChange={setMapOpen}
         currentDog={currentDog ?? null}
         allDogs={dogs}
+        onSelectDog={(dog) => {
+          setMapOpen(false);
+          setTimeout(() => setSelectedDog(dog), 250);
+        }}
       />
     </div>
   );

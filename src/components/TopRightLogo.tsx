@@ -13,7 +13,7 @@ export function TopRightLogo() {
       aria-label="Made by KODUA"
     >
       <img
-        src="/brand/kodua.png"
+        src="/brand/kodua.jpg"
         alt="KODUA"
         onError={() => setHidden(true)}
         className="h-8 w-auto object-contain opacity-70 group-hover:opacity-100 transition-opacity drop-shadow-md"
