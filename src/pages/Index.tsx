@@ -59,15 +59,30 @@ export default function Index() {
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-20 overflow-hidden">
-      {/* Header — left-aligned, right padding clears KODUA logo */}
-      <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-28">
-        <div className="flex items-center gap-2.5">
+      {/* Header — PRG left, KODUA right */}
+      <div className="flex items-center justify-between gap-3 w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Logo />
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm sm:text-base font-bold text-foreground">Pet Rescue Georgia</span>
-            <span className="text-[10px] sm:text-[11px] text-muted-foreground">მიუსაფარი ცხოველების მიკედლება</span>
+          <div className="flex flex-col leading-tight min-w-0">
+            <span className="text-sm sm:text-base font-bold text-foreground truncate">Pet Rescue Georgia</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">მიუსაფარი ცხოველების მიკედლება</span>
           </div>
         </div>
+        <a
+          href="https://github.com/koduaxodua"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0"
+          aria-label="KODUA"
+        >
+          <img
+            src="/brand/kodua.jpg"
+            alt="KODUA"
+            className="h-5 w-auto max-w-[80px] object-contain opacity-80 hover:opacity-100 transition-opacity"
+            draggable={false}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+        </a>
       </div>
 
       {allSwiped ? (
@@ -168,8 +183,11 @@ export default function Index() {
         currentDog={currentDog ?? null}
         allDogs={dogs}
         onSelectDog={(dog) => {
+          // Close map sheet first; wait for Radix close animation (~250ms) +
+          // safety margin before opening the next sheet, otherwise body's
+          // pointer-events lock leaks → black screen until refresh.
           setMapOpen(false);
-          setTimeout(() => setSelectedDog(dog), 250);
+          setTimeout(() => setSelectedDog(dog), 450);
         }}
       />
     </div>

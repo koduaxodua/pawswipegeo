@@ -135,7 +135,9 @@ export function MapSheet({ open, onOpenChange, currentDog, allDogs, onSelectDog 
           zIndexOffset: state === 'selected' ? 1000 : state === 'current' ? 500 : 0,
         }).addTo(map);
         m.bindTooltip(dog.name, { direction: 'top', offset: [0, -16], opacity: 0.95 });
-        m.on('click', () => onSelectDog?.(dog));
+        // Click on dot = highlight + show pop-card. Pop-card tap opens full profile.
+        // (Closing this Sheet inside Leaflet's own click handler crashes Radix.)
+        m.on('click', () => setSelectedId(dog.id));
         markersRef.current.set(dog.id, m);
       }
     });
