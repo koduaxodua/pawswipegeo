@@ -58,44 +58,46 @@ export default function Index() {
   const allSwiped = availableDogs.length === 0;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen px-4 pb-24 pt-4">
+    <div className="flex flex-col items-center h-[100dvh] px-4 pt-3 pb-20 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-center w-full max-w-sm sm:max-w-md lg:max-w-lg mb-4">
+      <div className="flex items-center justify-center w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0">
         <div className="flex items-center gap-3">
           <Logo />
           <div className="flex flex-col leading-tight">
-            <span className="text-lg font-bold text-foreground">Pet Rescue Georgia</span>
+            <span className="text-base font-bold text-foreground">Pet Rescue Georgia</span>
             <span className="text-[11px] text-muted-foreground">მიუსაფარი ცხოველების მიკედლება</span>
           </div>
         </div>
       </div>
 
       {allSwiped ? (
-        <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
-          <span className="text-6xl mb-4">🐶</span>
-          <h2 className="text-xl font-semibold text-primary-foreground mb-2">
-            ყველა ძაღლი ნანახია!
-          </h2>
-          <p className="text-primary-foreground/70 mb-2 text-sm">
-            ❤️ მოწონებული: {likedDogs.length} · ✕ გამოტოვებული: {dislikedDogs.length}
-          </p>
-          <p className="text-primary-foreground/70 mb-6 text-sm">
-            შეგიძლია გამოტოვებულები დააბრუნო ან ახალი ძაღლი დაამატო
-          </p>
-          {dislikedDogs.length > 0 && (
-            <button
-              onClick={handleReset}
-              className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
-            >
-              <RotateCcw className="h-4 w-4" />
-              გამოტოვებულების დაბრუნება
-            </button>
-          )}
+        <div className="flex-1 flex flex-col items-center justify-center w-full">
+          <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
+            <span className="text-6xl mb-4">🐾</span>
+            <h2 className="text-xl font-semibold text-foreground mb-2">
+              ყველა ცხოველი ნანახია!
+            </h2>
+            <p className="text-muted-foreground mb-2 text-sm">
+              ❤️ მოწონებული: {likedDogs.length} · ✕ გამოტოვებული: {dislikedDogs.length}
+            </p>
+            <p className="text-muted-foreground mb-6 text-sm">
+              შეგიძლია გამოტოვებულები დააბრუნო ან ახალი ცხოველი დაამატო
+            </p>
+            {dislikedDogs.length > 0 && (
+              <button
+                onClick={handleReset}
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
+              >
+                <RotateCcw className="h-4 w-4" />
+                გამოტოვებულების დაბრუნება
+              </button>
+            )}
+          </div>
         </div>
       ) : (
-        <>
-          {/* Card stack */}
-          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg aspect-[3/4]">
+        <div className="flex-1 flex flex-col items-center justify-center w-full min-h-0 gap-3 py-2">
+          {/* Card stack — flexible height, capped to fit */}
+          <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg flex-1 min-h-0 aspect-[3/4] mx-auto" style={{ maxHeight: 'min(calc(100dvh - 280px), 70vh)' }}>
             <AnimatePresence>
               {showAd ? (
                 <AdBanner key="ad" onDismiss={() => setShowAd(false)} />
@@ -118,36 +120,38 @@ export default function Index() {
             </AnimatePresence>
           </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-6 mt-6">
+          {/* Action buttons + Map button row — always visible */}
+          <div className="flex items-center gap-4 flex-shrink-0">
             <button
               onClick={() => handleSwipe('left')}
               disabled={showAd}
-              className="glass h-14 w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass h-13 w-13 sm:h-14 sm:w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="გამოტოვება"
+              style={{ height: 52, width: 52 }}
             >
-              <X className="h-7 w-7" />
+              <X className="h-6 w-6" />
             </button>
+
+            <button
+              onClick={() => setMapOpen(true)}
+              className="glass inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-foreground hover:scale-105 active:scale-95 transition-transform"
+              aria-label="რუკის ნახვა"
+            >
+              <Map className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium">რუკა</span>
+            </button>
+
             <button
               onClick={() => handleSwipe('right')}
               disabled={showAd}
-              className="glass h-16 w-16 rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="მოწონება"
+              style={{ height: 60, width: 60 }}
             >
-              <Heart className="h-8 w-8" fill="currentColor" />
+              <Heart className="h-7 w-7" fill="currentColor" />
             </button>
           </div>
-
-          {/* Map capsule below action buttons */}
-          <button
-            onClick={() => setMapOpen(true)}
-            className="mt-4 glass inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-primary-foreground hover:scale-105 active:scale-95 transition-transform"
-            aria-label="რუკის ნახვა"
-          >
-            <Map className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium">რუკა</span>
-          </button>
-        </>
+        </div>
       )}
 
       {selectedDog && (

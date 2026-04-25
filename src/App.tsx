@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
+import { TopRightLogo } from "@/components/TopRightLogo";
+import { Tutorial } from "@/components/Tutorial";
 import Index from "./pages/Index";
 import Favorites from "./pages/Favorites";
 import AddDog from "./pages/AddDog";
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <BottomNav />
+        <TopRightLogo />
+        <Tutorial />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
