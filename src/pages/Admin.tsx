@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldAlert, Trash2, Eye, LogOut, AlertCircle } from 'lucide-react';
+import { ShieldAlert, EyeOff, Eye, LogOut, AlertCircle } from 'lucide-react';
 import { useDogs } from '@/hooks/useDogs';
 import { useDeleteRequests } from '@/hooks/useDeleteRequests';
 import { useAdminMode } from '@/contexts/AdminMode';
@@ -15,42 +15,41 @@ export default function Admin() {
   const { requestedIds, cancelRequest, clearAll } = useDeleteRequests();
   const { exit } = useAdminMode();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [hiding, setHiding] = useState<string | null>(null);
 
   const requestedDogs = dogs.filter(d => requestedIds.includes(d.id));
 
   const isUuid = (id: string) =>
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
-  const handleRealDelete = async (dog: Dog) => {
-    if (!confirm(t('admin.delete.confirm', { name: dog.name }))) return;
-    setDeleting(dog.id);
+  /**
+   * Soft-delete: sets status='hidden' so the pet vanishes from the public feed
+   * (`pets_public_read` policy filters by status='available'). Falls back to
+   * local-only removal for non-UUID seed dogs that aren't in Supabase.
+   */
+  const handleHide = async (dog: Dog) => {
+    if (!confirm(t('admin.hide.confirm', { name: dog.name }))) return;
+    setHiding(dog.id);
     try {
-      // Sample seed dogs have non-UUID IDs ('1', '2', ...) and aren't in DB.
-      // Only attempt a Supabase delete for real (UUID) records.
       if (isSupabaseConfigured && supabase && isUuid(dog.id)) {
-        const { error } = await supabase.from('pets').delete().eq('id', dog.id);
+        const { error } = await supabase.from('pets').update({ status: 'hidden' }).eq('id', dog.id);
         if (error) {
-          if (error.message.includes('row-level security') || error.code === '42501') {
-            toast({
-              title: t('admin.delete.rls'),
-              description: t('admin.delete.rlsDesc'),
-              variant: 'destructive',
-            });
-          } else {
-            toast({ title: `Error: ${error.message}`, variant: 'destructive' });
-          }
+          toast({
+            title: t('admin.hide.failed'),
+            description: error.message,
+            variant: 'destructive',
+          });
         } else {
-          toast({ title: t('admin.deleted.db', { name: dog.name }) });
+          toast({ title: t('admin.hidden.db', { name: dog.name }) });
         }
       } else {
-        toast({ title: t('admin.deleted.local', { name: dog.name }) });
+        toast({ title: t('admin.hidden.local', { name: dog.name }) });
       }
       cancelRequest(dog.id);
     } catch (e) {
       toast({ title: t('common.error'), description: String(e), variant: 'destructive' });
     } finally {
-      setDeleting(null);
+      setHiding(null);
     }
   };
 
@@ -133,12 +132,12 @@ export default function Admin() {
                 </div>
               </button>
               <button
-                onClick={() => handleRealDelete(dog)}
-                disabled={deleting === dog.id}
+                onClick={() => handleHide(dog)}
+                disabled={hiding === dog.id}
                 className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-destructive text-destructive-foreground text-xs font-medium hover:opacity-90 transition disabled:opacity-50"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                {deleting === dog.id ? t('admin.deleting') : t('admin.delete')}
+                <EyeOff className="h-3.5 w-3.5" />
+                {hiding === dog.id ? t('admin.hiding') : t('admin.hide')}
               </button>
             </div>
           ))}
