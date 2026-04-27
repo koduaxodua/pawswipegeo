@@ -1,8 +1,28 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MapPin, LocateFixed, Loader2, Check, Search, X } from 'lucide-react';
+import { MapPin, LocateFixed, Loader2, Check, Search, X, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useT, useLocale } from '@/contexts/Locale';
+
+interface NominatimAddress {
+  house_number?: string;
+  // Streets — OSM uses different keys depending on classification
+  road?: string;
+  pedestrian?: string;
+  residential?: string;
+  path?: string;
+  street?: string;
+  // Neighborhood-level fallbacks
+  suburb?: string;
+  neighbourhood?: string;
+  quarter?: string;
+  city_district?: string;
+  // City-level
+  city?: string;
+  town?: string;
+  village?: string;
+  hamlet?: string;
+}
 
 interface NominatimResult {
   place_id: number;
@@ -10,30 +30,118 @@ interface NominatimResult {
   lat: string;
   lon: string;
   type?: string;
-  address?: {
-    house_number?: string;
-    road?: string;
-    suburb?: string;
-    neighbourhood?: string;
-    quarter?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-  };
+  address?: NominatimAddress;
 }
 
-/** Build a compact, street-level label preferring house number → road → suburb → city. */
-function buildShortLabel(r: { display_name: string; address?: NominatimResult['address'] }): string {
+/**
+ * Build a label preferring "Street + House Number" structure.
+ * Falls through several OSM street-type keys before settling on a neighborhood.
+ */
+function buildShortLabel(r: { display_name: string; address?: NominatimAddress }): string {
   const a = r.address ?? {};
-  const street = a.road
-    ? a.house_number
-      ? `${a.road} ${a.house_number}`
-      : a.road
-    : a.neighbourhood || a.quarter || a.suburb;
-  const area = a.city || a.town || a.village;
-  const parts = [street, area].filter(Boolean);
+  const street = a.road || a.pedestrian || a.residential || a.street || a.path;
+  const num = a.house_number;
+  let line: string;
+  if (street && num) line = `${street} ${num}`;
+  else if (street) line = street;
+  else line = a.neighbourhood || a.quarter || a.suburb || a.city_district || '';
+
+  const area = a.city || a.town || a.village || a.hamlet;
+  const parts = [line, area].filter(Boolean);
   if (parts.length) return parts.join(', ');
   return r.display_name.split(',').slice(0, 2).join(',').trim();
+}
+
+/**
+ * Layered GPS sampling — keeps watching for ~15s, returns the most accurate
+ * fix seen so far. Resolves early if accuracy reaches the target threshold.
+ *
+ * Mobile devices typically start with cellular/Wi-Fi triangulation (~500m–
+ * 5km), then improve to GPS (~5–50m) once the radio locks. A single
+ * `getCurrentPosition` call often returns the first poor reading; this
+ * collects several samples and keeps the best.
+ */
+const ACCURACY_TARGET_M = 30; // good enough — resolve immediately
+const ACCURACY_POOR_M = 100; // warn the user above this
+const MAX_WAIT_MS = 15000;
+
+function getBestPosition(
+  onProgress?: (acc: number) => void
+): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('geolocation unavailable'));
+      return;
+    }
+
+    let best: GeolocationPosition | null = null;
+    let watchId: number | null = null;
+    let timer: number | null = null;
+
+    const finalize = () => {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (timer !== null) window.clearTimeout(timer);
+      if (best) resolve(best);
+      else reject(new Error('no fix obtained'));
+    };
+
+    watchId = navigator.geolocation.watchPosition(
+      pos => {
+        if (!best || pos.coords.accuracy < best.coords.accuracy) {
+          best = pos;
+          onProgress?.(pos.coords.accuracy);
+        }
+        if (pos.coords.accuracy <= ACCURACY_TARGET_M) {
+          finalize();
+        }
+      },
+      err => {
+        // GPS error mid-watch — settle with whatever we have, or reject
+        if (best) finalize();
+        else {
+          if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+          if (timer !== null) window.clearTimeout(timer);
+          reject(err);
+        }
+      },
+      { enableHighAccuracy: true, timeout: MAX_WAIT_MS, maximumAge: 0 }
+    );
+
+    timer = window.setTimeout(finalize, MAX_WAIT_MS);
+  });
+}
+
+/**
+ * Reverse geocode with multiple zoom-level fallbacks. Zoom=18 returns
+ * building-level precision when available; falls back to 17, 16 for areas
+ * without a registered street/number.
+ */
+async function reverseGeocode(
+  lat: number,
+  lon: number,
+  lang: string
+): Promise<NominatimResult | null> {
+  let lastResult: NominatimResult | null = null;
+  for (const zoom of [18, 17, 16]) {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('lat', String(lat));
+      url.searchParams.set('lon', String(lon));
+      url.searchParams.set('format', 'json');
+      url.searchParams.set('addressdetails', '1');
+      url.searchParams.set('zoom', String(zoom));
+      url.searchParams.set('accept-language', lang);
+      const res = await fetch(url.toString());
+      if (!res.ok) continue;
+      const data: NominatimResult = await res.json();
+      lastResult = data;
+      // Prefer the first zoom that returns a real street + number.
+      if (data.address?.road && data.address?.house_number) return data;
+    } catch {
+      // try next zoom
+    }
+  }
+  return lastResult;
 }
 
 interface LocationPickerProps {
@@ -47,7 +155,7 @@ interface LocationPickerProps {
 
 /**
  * Combined location picker:
- *  1. "Use current location" button (geolocation API + reverse geocode)
+ *  1. "Use current location" button — multi-sample GPS + multi-zoom geocode
  *  2. Type-ahead search via OpenStreetMap Nominatim (Georgian / English supported)
  */
 export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPickerProps) {
@@ -57,6 +165,8 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [progressAcc, setProgressAcc] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const debounceRef = useRef<number | null>(null);
@@ -115,7 +225,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         url.searchParams.set('addressdetails', '1');
         url.searchParams.set('limit', '6');
         url.searchParams.set('countrycodes', 'ge');
-        url.searchParams.set('accept-language', 'ka,en');
+        url.searchParams.set('accept-language', locale === 'en' ? 'en,ka' : 'ka,en');
         const res = await fetch(url.toString(), {
           headers: { 'Accept': 'application/json' },
         });
@@ -135,58 +245,70 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     };
   }, [query, locationLabel]);
 
-  const handleUseCurrentLocation = () => {
+  const handleUseCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast({ title: t('loc.gpsBlocked'), variant: 'destructive' });
       return;
     }
     setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      async pos => {
-        const { latitude, longitude } = pos.coords;
-        let label = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-        try {
-          const url = new URL('https://nominatim.openstreetmap.org/reverse');
-          url.searchParams.set('lat', String(latitude));
-          url.searchParams.set('lon', String(longitude));
-          url.searchParams.set('format', 'json');
-          url.searchParams.set('addressdetails', '1');
-          url.searchParams.set('zoom', '18'); // building-level precision
-          url.searchParams.set('accept-language', locale === 'en' ? 'en,ka' : 'ka,en');
-          const res = await fetch(url.toString());
-          if (res.ok) {
-            const data = await res.json();
-            label = buildShortLabel(data);
-          }
-        } catch {
-          // keep coord label
-        }
-        onChange({ lat: latitude, lng: longitude, label });
-        setQuery(label);
-        setShowResults(false);
-        toast({ title: locale === 'en' ? 'Current location set ✓' : 'მიმდინარე ლოკაცია დაყენებულია ✓' });
-        setLocating(false);
-      },
-      err => {
-        setLocating(false);
+    setProgressAcc(null);
+    setAccuracy(null);
+    try {
+      const pos = await getBestPosition(setProgressAcc);
+      const { latitude, longitude, accuracy: acc } = pos.coords;
+
+      // High-precision fallback label
+      let label = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+      const data = await reverseGeocode(
+        latitude,
+        longitude,
+        locale === 'en' ? 'en,ka' : 'ka,en'
+      );
+      if (data) label = buildShortLabel(data);
+
+      onChange({ lat: latitude, lng: longitude, label });
+      setQuery(label);
+      setAccuracy(acc);
+      setShowResults(false);
+
+      const accRounded = Math.round(acc);
+      if (acc > ACCURACY_POOR_M) {
         toast({
-          title: t('loc.gpsFailed'),
-          description: err.message,
-          variant: 'destructive',
+          title:
+            locale === 'en'
+              ? `Location set, but accuracy is poor (±${accRounded}m). Refine via search.`
+              : `ლოკაცია დაყენდა, მაგრამ სიზუსტე დაბალია (±${accRounded}მ). ძებნით დააზუსტე.`,
         });
-      },
-      { timeout: 10000, enableHighAccuracy: true }
-    );
+      } else {
+        toast({
+          title:
+            locale === 'en'
+              ? `Current location ✓ ±${accRounded}m`
+              : `მიმდინარე ლოკაცია ✓ ±${accRounded}მ`,
+        });
+      }
+    } catch (err) {
+      toast({
+        title: t('loc.gpsFailed'),
+        description: err instanceof Error ? err.message : undefined,
+        variant: 'destructive',
+      });
+    } finally {
+      setLocating(false);
+      setProgressAcc(null);
+    }
   };
 
   const handlePickResult = (r: NominatimResult) => {
     const shortLabel = buildShortLabel(r);
     onChange({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: shortLabel });
     setQuery(shortLabel);
+    setAccuracy(null); // search results have no GPS accuracy concept
     setShowResults(false);
   };
 
   const hasCoords = typeof lat === 'number' && typeof lng === 'number';
+  const isPoorAccuracy = accuracy !== null && accuracy > ACCURACY_POOR_M;
 
   return (
     <div className="glass rounded-2xl p-4 space-y-3">
@@ -205,7 +327,11 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         {locating ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            {t('loc.locating')}
+            {progressAcc !== null
+              ? locale === 'en'
+                ? `Refining ±${Math.round(progressAcc)}m...`
+                : `ვაზუსტებ ±${Math.round(progressAcc)}მ...`
+              : t('loc.locating')}
           </>
         ) : (
           <>
@@ -262,7 +388,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
               className="w-full text-left px-3 py-2.5 hover:bg-primary/10 transition border-b border-border/30 last:border-0"
             >
               <div className="text-sm text-foreground line-clamp-1">
-                {r.display_name.split(',').slice(0, 2).join(', ')}
+                {buildShortLabel(r) || r.display_name.split(',').slice(0, 2).join(', ')}
               </div>
               <div className="text-xs text-muted-foreground line-clamp-1">
                 {r.display_name}
@@ -274,9 +400,22 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
       )}
 
       {hasCoords && (
-        <div className="flex items-center gap-1.5 text-xs text-primary">
-          <Check className="h-3 w-3" />
-          {t('loc.selected')} {lat!.toFixed(4)}, {lng!.toFixed(4)}
+        <div
+          className={`flex items-center gap-1.5 text-xs ${
+            isPoorAccuracy ? 'text-yellow-500' : 'text-primary'
+          }`}
+        >
+          {isPoorAccuracy ? (
+            <AlertTriangle className="h-3.5 w-3.5" />
+          ) : (
+            <Check className="h-3.5 w-3.5" />
+          )}
+          <span>
+            {t('loc.selected')} {lat!.toFixed(5)}, {lng!.toFixed(5)}
+            {accuracy !== null && (
+              <span className="text-muted-foreground"> · ±{Math.round(accuracy)}{locale === 'en' ? 'm' : 'მ'}</span>
+            )}
+          </span>
         </div>
       )}
     </div>
