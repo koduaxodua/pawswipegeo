@@ -62,7 +62,7 @@ export function useT() {
 const TRANSLATIONS = {
   // App
   'app.title':              { ka: 'Pet Rescue Georgia', en: 'Pet Rescue Georgia' },
-  'app.tagline':            { ka: 'მიუსაფარი ცხოველების მიკედლება', en: 'Adopt a homeless pet' },
+  'app.tagline':            { ka: 'მიუსაფარი ცხოველების გადარჩენისთვის', en: 'Rescuing homeless pets' },
 
   // Navigation
   'nav.swipe':              { ka: 'სვაიპი', en: 'Swipe' },
@@ -168,11 +168,11 @@ const TRANSLATIONS = {
   'tutorial.s1.title':      { ka: 'მოგესალმებით 🐾', en: 'Welcome 🐾' },
   'tutorial.s1.desc':       { ka: 'Pet Rescue Georgia — სვაიპით იპოვე შენი ახალი ოთხფეხა მეგობარი.', en: 'Pet Rescue Georgia — swipe to find your new four-legged friend.' },
   'tutorial.s2.title':      { ka: 'მარჯვნივ — მომწონს', en: 'Right — Like' },
-  'tutorial.s2.desc':       { ka: 'სვაიპე ბარათი მარჯვნივ ან დააჭირე ❤️ ღილაკს, რომ მოიწონო ცხოველი. იპოვი მათ "მოწონებულ" გვერდზე.', en: 'Swipe the card right or tap ❤️ to like a pet. Find them on the "Liked" page.' },
+  'tutorial.s2.desc':       { ka: 'დაასვაიპე ბარათი მარჯვნივ ან დააჭირე ❤️ ღილაკს, რომ მოიწონო ცხოველი. მათ შემდგომ იპოვი "მოწონებულების" გვერდზე.', en: "Swipe the card right or tap ❤️ to like a pet. You'll find them later on the \"Liked\" page." },
   'tutorial.s3.title':      { ka: 'მარცხნივ — შემდეგი', en: 'Left — Next' },
-  'tutorial.s3.desc':       { ka: 'სვაიპე მარცხნივ ან დააჭირე ✕ ღილაკს, რომ შემდეგზე გადახვიდე.', en: 'Swipe left or tap ✕ to move to the next pet.' },
+  'tutorial.s3.desc':       { ka: 'დაასვაიპე მარცხნივ ან დააჭირე ✕ ღილაკს, რომ შემდეგზე გადახვიდე.', en: 'Swipe left or tap ✕ to move to the next pet.' },
   'tutorial.s4.title':      { ka: 'ცხოველის დამატება', en: 'Add a pet' },
-  'tutorial.s4.desc':       { ka: 'ქვედა მენიუში "+" ღილაკი — თუ იცნობ მიუსაფარ ცხოველს, აიტვირთე მისი ფოტო და მონაცემები. ყველა მომხმარებელი ნახავს.', en: 'Tap "+" in the bottom menu — if you know a homeless pet, upload its photo and details. Everyone will see it.' },
+  'tutorial.s4.desc':       { ka: 'ქვედა მენიუში "+" ღილაკი — თუ შენიშნავ მიუსაფარ ცხოველს, აიტვირთე მისი ფოტო და მონაცემები. ჩვენ ვეცდებით მზრუნველი პატრონი მოვუძებნოთ.', en: "Tap \"+\" in the bottom menu — if you spot a homeless pet, upload its photo and details. We'll try to find them a caring owner." },
 
   // Admin
   'admin.title':            { ka: 'ადმინ რეჟიმი', en: 'Admin mode' },
