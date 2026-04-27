@@ -1,23 +1,23 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { MapPin, LocateFixed, Loader2, Check, Search, X, AlertTriangle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useT, useLocale } from '@/contexts/Locale';
+import { DEFAULT_CENTER } from '@/data/locations';
 
 interface NominatimAddress {
   house_number?: string;
-  // Streets — OSM uses different keys depending on classification
   road?: string;
   pedestrian?: string;
   residential?: string;
   path?: string;
   street?: string;
-  // Neighborhood-level fallbacks
   suburb?: string;
   neighbourhood?: string;
   quarter?: string;
   city_district?: string;
-  // City-level
   city?: string;
   town?: string;
   village?: string;
@@ -33,10 +33,6 @@ interface NominatimResult {
   address?: NominatimAddress;
 }
 
-/**
- * Build a label preferring "Street + House Number" structure.
- * Falls through several OSM street-type keys before settling on a neighborhood.
- */
 function buildShortLabel(r: { display_name: string; address?: NominatimAddress }): string {
   const a = r.address ?? {};
   const street = a.road || a.pedestrian || a.residential || a.street || a.path;
@@ -52,17 +48,8 @@ function buildShortLabel(r: { display_name: string; address?: NominatimAddress }
   return r.display_name.split(',').slice(0, 2).join(',').trim();
 }
 
-/**
- * Layered GPS sampling — keeps watching for ~15s, returns the most accurate
- * fix seen so far. Resolves early if accuracy reaches the target threshold.
- *
- * Mobile devices typically start with cellular/Wi-Fi triangulation (~500m–
- * 5km), then improve to GPS (~5–50m) once the radio locks. A single
- * `getCurrentPosition` call often returns the first poor reading; this
- * collects several samples and keeps the best.
- */
-const ACCURACY_TARGET_M = 30; // good enough — resolve immediately
-const ACCURACY_POOR_M = 100; // warn the user above this
+const ACCURACY_TARGET_M = 30;
+const ACCURACY_POOR_M = 100;
 const MAX_WAIT_MS = 15000;
 
 function getBestPosition(
@@ -73,7 +60,6 @@ function getBestPosition(
       reject(new Error('geolocation unavailable'));
       return;
     }
-
     let best: GeolocationPosition | null = null;
     let watchId: number | null = null;
     let timer: number | null = null;
@@ -91,12 +77,9 @@ function getBestPosition(
           best = pos;
           onProgress?.(pos.coords.accuracy);
         }
-        if (pos.coords.accuracy <= ACCURACY_TARGET_M) {
-          finalize();
-        }
+        if (pos.coords.accuracy <= ACCURACY_TARGET_M) finalize();
       },
       err => {
-        // GPS error mid-watch — settle with whatever we have, or reject
         if (best) finalize();
         else {
           if (watchId !== null) navigator.geolocation.clearWatch(watchId);
@@ -106,16 +89,10 @@ function getBestPosition(
       },
       { enableHighAccuracy: true, timeout: MAX_WAIT_MS, maximumAge: 0 }
     );
-
     timer = window.setTimeout(finalize, MAX_WAIT_MS);
   });
 }
 
-/**
- * Reverse geocode with multiple zoom-level fallbacks. Zoom=18 returns
- * building-level precision when available; falls back to 17, 16 for areas
- * without a registered street/number.
- */
 async function reverseGeocode(
   lat: number,
   lon: number,
@@ -135,28 +112,39 @@ async function reverseGeocode(
       if (!res.ok) continue;
       const data: NominatimResult = await res.json();
       lastResult = data;
-      // Prefer the first zoom that returns a real street + number.
       if (data.address?.road && data.address?.house_number) return data;
     } catch {
-      // try next zoom
+      // try next
     }
   }
   return lastResult;
 }
 
+const pinIcon = L.divIcon({
+  html: `<div style="position:relative;transform:translate(-50%,-100%);">
+    <div style="width:32px;height:32px;border-radius:9999px 9999px 9999px 0;background:hsl(36,89%,54%);border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.4);transform:rotate(-45deg);"></div>
+    <div style="position:absolute;top:9px;left:9px;width:14px;height:14px;border-radius:9999px;background:#fff;"></div>
+  </div>`,
+  className: 'pin-icon',
+  iconSize: [32, 32],
+  iconAnchor: [0, 0],
+});
+
 interface LocationPickerProps {
-  /** Currently chosen lat/lng (from parent form) */
   lat?: number;
   lng?: number;
-  /** Free-form location label shown in the dog card */
   locationLabel: string;
   onChange: (data: { lat: number; lng: number; label: string }) => void;
 }
 
 /**
- * Combined location picker:
- *  1. "Use current location" button — multi-sample GPS + multi-zoom geocode
- *  2. Type-ahead search via OpenStreetMap Nominatim (Georgian / English supported)
+ * Pin-drop location picker:
+ *  1. GPS button — quick start (when accurate)
+ *  2. Map — tap or drag the pin to set exact location (most reliable)
+ *  3. Search — find address by name
+ *
+ * Reverse-geocodes after every pin move, so the human-readable label stays
+ * in sync with whatever lat/lng the user picks.
  */
 export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPickerProps) {
   const t = useT();
@@ -169,10 +157,95 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   const [progressAcc, setProgressAcc] = useState<number | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [reverseLoading, setReverseLoading] = useState(false);
+
   const debounceRef = useRef<number | null>(null);
+  const reverseDebounceRef = useRef<number | null>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
 
-  // Position the portal dropdown right under the input, in viewport coords
+  // Map refs
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+
+  // ------- Reverse-geocode helper (debounced, used after pin moves) -------
+  const reverseAndUpdate = useCallback((newLat: number, newLng: number) => {
+    if (reverseDebounceRef.current) window.clearTimeout(reverseDebounceRef.current);
+    setReverseLoading(true);
+    reverseDebounceRef.current = window.setTimeout(async () => {
+      let label = `${newLat.toFixed(5)}, ${newLng.toFixed(5)}`;
+      const data = await reverseGeocode(
+        newLat,
+        newLng,
+        locale === 'en' ? 'en,ka' : 'ka,en'
+      );
+      if (data) label = buildShortLabel(data) || label;
+      onChangeRef.current({ lat: newLat, lng: newLng, label });
+      setQuery(label);
+      setReverseLoading(false);
+    }, 350);
+  }, [locale]);
+
+  // ------- Initialize the Leaflet map exactly once -------
+  const setMapNode = useCallback((node: HTMLDivElement | null) => {
+    containerRef.current = node;
+    if (!node) {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+        markerRef.current = null;
+      }
+      return;
+    }
+    if (mapRef.current) return;
+
+    const initialCenter: L.LatLngTuple =
+      typeof lat === 'number' && typeof lng === 'number' ? [lat, lng] : DEFAULT_CENTER;
+
+    const map = L.map(node, {
+      center: initialCenter,
+      zoom: typeof lat === 'number' ? 16 : 12,
+      zoomControl: true,
+      attributionControl: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map);
+
+    const marker = L.marker(initialCenter, { icon: pinIcon, draggable: true }).addTo(map);
+
+    // Tap on map = move pin
+    map.on('click', (e: L.LeafletMouseEvent) => {
+      marker.setLatLng(e.latlng);
+      reverseAndUpdate(e.latlng.lat, e.latlng.lng);
+    });
+
+    // Drag pin = move pin
+    marker.on('dragend', () => {
+      const ll = marker.getLatLng();
+      reverseAndUpdate(ll.lat, ll.lng);
+    });
+
+    mapRef.current = map;
+    markerRef.current = marker;
+
+    requestAnimationFrame(() => map.invalidateSize());
+    setTimeout(() => map.invalidateSize(), 350);
+  }, [lat, lng, reverseAndUpdate]);
+
+  // ------- When parent prop lat/lng changes (e.g. via GPS / search), move pin -------
+  useEffect(() => {
+    if (!mapRef.current || !markerRef.current) return;
+    if (typeof lat !== 'number' || typeof lng !== 'number') return;
+    const current = markerRef.current.getLatLng();
+    if (current.lat === lat && current.lng === lng) return;
+    markerRef.current.setLatLng([lat, lng]);
+    mapRef.current.flyTo([lat, lng], 16, { duration: 0.6 });
+  }, [lat, lng]);
+
+  // ------- Search dropdown positioning -------
   useLayoutEffect(() => {
     if (!showResults || !inputWrapRef.current) return;
     const updateRect = () => {
@@ -188,13 +261,11 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     };
   }, [showResults, results.length]);
 
-  // Close on outside click
   useEffect(() => {
     if (!showResults) return;
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as Node;
       if (inputWrapRef.current && !inputWrapRef.current.contains(target)) {
-        // Allow clicks inside the portal dropdown — they have data attribute
         if (!(target instanceof HTMLElement && target.closest('[data-location-dropdown]'))) {
           setShowResults(false);
         }
@@ -204,12 +275,11 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     return () => document.removeEventListener('mousedown', onDocClick);
   }, [showResults]);
 
-  // Keep input in sync if parent label changes (e.g. via GPS button)
   useEffect(() => {
     setQuery(locationLabel);
   }, [locationLabel]);
 
-  // Debounced Nominatim search — bounded to Georgia for relevance
+  // ------- Debounced search -------
   useEffect(() => {
     if (!query || query.trim().length < 2 || query === locationLabel) {
       setResults([]);
@@ -245,6 +315,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     };
   }, [query, locationLabel]);
 
+  // ------- GPS button -------
   const handleUseCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast({ title: t('loc.gpsBlocked'), variant: 'destructive' });
@@ -257,14 +328,13 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
       const pos = await getBestPosition(setProgressAcc);
       const { latitude, longitude, accuracy: acc } = pos.coords;
 
-      // High-precision fallback label
       let label = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
       const data = await reverseGeocode(
         latitude,
         longitude,
         locale === 'en' ? 'en,ka' : 'ka,en'
       );
-      if (data) label = buildShortLabel(data);
+      if (data) label = buildShortLabel(data) || label;
 
       onChange({ lat: latitude, lng: longitude, label });
       setQuery(label);
@@ -276,8 +346,8 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         toast({
           title:
             locale === 'en'
-              ? `Location set, but accuracy is poor (±${accRounded}m). Refine via search.`
-              : `ლოკაცია დაყენდა, მაგრამ სიზუსტე დაბალია (±${accRounded}მ). ძებნით დააზუსტე.`,
+              ? `±${accRounded}m — drop the pin precisely on the map below`
+              : `±${accRounded}მ — დააყენე pin-ი ზუსტად ქვემო რუკაზე`,
         });
       } else {
         toast({
@@ -303,7 +373,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     const shortLabel = buildShortLabel(r);
     onChange({ lat: parseFloat(r.lat), lng: parseFloat(r.lon), label: shortLabel });
     setQuery(shortLabel);
-    setAccuracy(null); // search results have no GPS accuracy concept
+    setAccuracy(null);
     setShowResults(false);
   };
 
@@ -317,7 +387,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         {t('loc.title')}
       </label>
 
-      {/* Current location button — primary action */}
+      {/* GPS quick-start button */}
       <button
         type="button"
         onClick={handleUseCurrentLocation}
@@ -341,11 +411,29 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         )}
       </button>
 
+      {/* Pin-drop map */}
+      <div className="space-y-1.5">
+        <p className="text-[11px] text-muted-foreground">
+          {locale === 'en'
+            ? 'Tap the map or drag the pin to set the exact location'
+            : 'რუკაზე დააჭირე ან გადათრიე pin-ი ზუსტი ლოკაციისთვის'}
+        </p>
+        <div className="relative h-56 rounded-xl overflow-hidden border border-border/50 bg-secondary">
+          <div ref={setMapNode} className="absolute inset-0 z-0" />
+          {reverseLoading && (
+            <div className="absolute top-2 right-2 z-[500] bg-background/80 backdrop-blur rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[11px] text-foreground shadow">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {locale === 'en' ? 'Resolving...' : 'მისამართი იძებნება...'}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="text-center text-xs text-muted-foreground">
         {locale === 'en' ? 'or search address' : 'ან მოძებნე მისამართი'}
       </div>
 
-      {/* Search input with autocomplete (dropdown rendered in a portal to escape stacking contexts) */}
+      {/* Search input */}
       <div ref={inputWrapRef} className="relative">
         <div className="flex items-center gap-2 border-b border-border/50 pb-1.5">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
