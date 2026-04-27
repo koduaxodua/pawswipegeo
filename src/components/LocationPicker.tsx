@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, LocateFixed, Loader2, Check, Search, X, AlertTriangle } from 'lucide-react';
+import { MapPin, LocateFixed, Loader2, Check, Search, X, AlertTriangle, Camera } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useT, useLocale } from '@/contexts/Locale';
 import { DEFAULT_CENTER } from '@/data/locations';
@@ -120,33 +120,27 @@ async function reverseGeocode(
   return lastResult;
 }
 
-const pinIcon = L.divIcon({
-  html: `<div style="position:relative;transform:translate(-50%,-100%);">
-    <div style="width:32px;height:32px;border-radius:9999px 9999px 9999px 0;background:hsl(36,89%,54%);border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.4);transform:rotate(-45deg);"></div>
-    <div style="position:absolute;top:9px;left:9px;width:14px;height:14px;border-radius:9999px;background:#fff;"></div>
-  </div>`,
-  className: 'pin-icon',
-  iconSize: [32, 32],
-  iconAnchor: [0, 0],
-});
-
 interface LocationPickerProps {
   lat?: number;
   lng?: number;
   locationLabel: string;
+  /** When the photo's EXIF GPS matches the current lat/lng, show a badge. */
+  photoExif?: { lat: number; lng: number } | null;
   onChange: (data: { lat: number; lng: number; label: string }) => void;
 }
 
 /**
- * Pin-drop location picker:
- *  1. GPS button — quick start (when accurate)
- *  2. Map — tap or drag the pin to set exact location (most reliable)
- *  3. Search — find address by name
+ * Pin-drop location picker — taxi-app style:
+ *  - Pin is a fixed CSS overlay at the center of the map.
+ *  - User pans/zooms the MAP, the pin tip lands on whatever's underneath.
+ *  - On every map idle, reverse-geocode and update the parent.
  *
- * Reverse-geocodes after every pin move, so the human-readable label stays
- * in sync with whatever lat/lng the user picks.
+ *  Plus:
+ *   - GPS button (multi-sample, accuracy-aware) for quick start
+ *   - Search input with autocomplete (Nominatim)
+ *   - "Photo taken here" badge when current lat/lng matches photo EXIF GPS
  */
-export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPickerProps) {
+export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }: LocationPickerProps) {
   const t = useT();
   const { locale } = useLocale();
   const [query, setQuery] = useState(locationLabel);
@@ -158,19 +152,19 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
   const [showResults, setShowResults] = useState(false);
   const [dropdownRect, setDropdownRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const [reverseLoading, setReverseLoading] = useState(false);
+  const [moving, setMoving] = useState(false);
 
   const debounceRef = useRef<number | null>(null);
   const reverseDebounceRef = useRef<number | null>(null);
   const inputWrapRef = useRef<HTMLDivElement>(null);
 
-  // Map refs
   const mapRef = useRef<L.Map | null>(null);
-  const markerRef = useRef<L.Marker | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Suppresses moveend handling while we recenter programmatically (GPS / search)
+  const programmaticRef = useRef(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
 
-  // ------- Reverse-geocode helper (debounced, used after pin moves) -------
   const reverseAndUpdate = useCallback((newLat: number, newLng: number) => {
     if (reverseDebounceRef.current) window.clearTimeout(reverseDebounceRef.current);
     setReverseLoading(true);
@@ -185,17 +179,16 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
       onChangeRef.current({ lat: newLat, lng: newLng, label });
       setQuery(label);
       setReverseLoading(false);
-    }, 350);
+    }, 400);
   }, [locale]);
 
-  // ------- Initialize the Leaflet map exactly once -------
+  // Initialize map once (callback ref pattern — fires when DOM mounts)
   const setMapNode = useCallback((node: HTMLDivElement | null) => {
     containerRef.current = node;
     if (!node) {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
-        markerRef.current = null;
       }
       return;
     }
@@ -206,7 +199,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
     const map = L.map(node, {
       center: initialCenter,
-      zoom: typeof lat === 'number' ? 16 : 12,
+      zoom: typeof lat === 'number' ? 17 : 12,
       zoomControl: true,
       attributionControl: false,
     });
@@ -214,38 +207,36 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
       maxZoom: 19,
     }).addTo(map);
 
-    const marker = L.marker(initialCenter, { icon: pinIcon, draggable: true }).addTo(map);
-
-    // Tap on map = move pin
-    map.on('click', (e: L.LeafletMouseEvent) => {
-      marker.setLatLng(e.latlng);
-      reverseAndUpdate(e.latlng.lat, e.latlng.lng);
-    });
-
-    // Drag pin = move pin
-    marker.on('dragend', () => {
-      const ll = marker.getLatLng();
-      reverseAndUpdate(ll.lat, ll.lng);
+    // Show movement indicator while user is panning
+    map.on('movestart', () => setMoving(true));
+    map.on('moveend', () => {
+      setMoving(false);
+      // Skip programmatic moves (flyTo from GPS/search already updated state)
+      if (programmaticRef.current) {
+        programmaticRef.current = false;
+        return;
+      }
+      const c = map.getCenter();
+      reverseAndUpdate(c.lat, c.lng);
     });
 
     mapRef.current = map;
-    markerRef.current = marker;
-
     requestAnimationFrame(() => map.invalidateSize());
     setTimeout(() => map.invalidateSize(), 350);
   }, [lat, lng, reverseAndUpdate]);
 
-  // ------- When parent prop lat/lng changes (e.g. via GPS / search), move pin -------
+  // When parent lat/lng changes (GPS button, search, EXIF), fly the map there.
+  // The moveend handler suppresses self-update via programmaticRef.
   useEffect(() => {
-    if (!mapRef.current || !markerRef.current) return;
+    if (!mapRef.current) return;
     if (typeof lat !== 'number' || typeof lng !== 'number') return;
-    const current = markerRef.current.getLatLng();
-    if (current.lat === lat && current.lng === lng) return;
-    markerRef.current.setLatLng([lat, lng]);
-    mapRef.current.flyTo([lat, lng], 16, { duration: 0.6 });
+    const center = mapRef.current.getCenter();
+    if (Math.abs(center.lat - lat) < 1e-6 && Math.abs(center.lng - lng) < 1e-6) return;
+    programmaticRef.current = true;
+    mapRef.current.flyTo([lat, lng], 17, { duration: 0.6 });
   }, [lat, lng]);
 
-  // ------- Search dropdown positioning -------
+  // Search dropdown positioning
   useLayoutEffect(() => {
     if (!showResults || !inputWrapRef.current) return;
     const updateRect = () => {
@@ -279,7 +270,6 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     setQuery(locationLabel);
   }, [locationLabel]);
 
-  // ------- Debounced search -------
   useEffect(() => {
     if (!query || query.trim().length < 2 || query === locationLabel) {
       setResults([]);
@@ -296,9 +286,7 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         url.searchParams.set('limit', '6');
         url.searchParams.set('countrycodes', 'ge');
         url.searchParams.set('accept-language', locale === 'en' ? 'en,ka' : 'ka,en');
-        const res = await fetch(url.toString(), {
-          headers: { 'Accept': 'application/json' },
-        });
+        const res = await fetch(url.toString(), { headers: { 'Accept': 'application/json' } });
         if (res.ok) {
           const data: NominatimResult[] = await res.json();
           setResults(data);
@@ -315,7 +303,6 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     };
   }, [query, locationLabel]);
 
-  // ------- GPS button -------
   const handleUseCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast({ title: t('loc.gpsBlocked'), variant: 'destructive' });
@@ -327,7 +314,6 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
     try {
       const pos = await getBestPosition(setProgressAcc);
       const { latitude, longitude, accuracy: acc } = pos.coords;
-
       let label = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
       const data = await reverseGeocode(
         latitude,
@@ -346,8 +332,8 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         toast({
           title:
             locale === 'en'
-              ? `±${accRounded}m — drop the pin precisely on the map below`
-              : `±${accRounded}მ — დააყენე pin-ი ზუსტად ქვემო რუკაზე`,
+              ? `±${accRounded}m — pan the map to refine`
+              : `±${accRounded}მ — გადააადგილე რუკა, რომ დააზუსტო`,
         });
       } else {
         toast({
@@ -379,6 +365,14 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
 
   const hasCoords = typeof lat === 'number' && typeof lng === 'number';
   const isPoorAccuracy = accuracy !== null && accuracy > ACCURACY_POOR_M;
+  // Stays true while the lat/lng exactly match the EXIF reading
+  const isPhotoLocation =
+    photoExif !== null &&
+    photoExif !== undefined &&
+    typeof lat === 'number' &&
+    typeof lng === 'number' &&
+    Math.abs(lat - photoExif.lat) < 1e-6 &&
+    Math.abs(lng - photoExif.lng) < 1e-6;
 
   return (
     <div className="glass rounded-2xl p-4 space-y-3">
@@ -411,29 +405,70 @@ export function LocationPicker({ lat, lng, locationLabel, onChange }: LocationPi
         )}
       </button>
 
-      {/* Pin-drop map */}
+      {/* Pin-in-center / map-moves picker */}
       <div className="space-y-1.5">
         <p className="text-[11px] text-muted-foreground">
           {locale === 'en'
-            ? 'Tap the map or drag the pin to set the exact location'
-            : 'რუკაზე დააჭირე ან გადათრიე pin-ი ზუსტი ლოკაციისთვის'}
+            ? 'Move the map — the pin marks the exact spot'
+            : 'გადააადგილე რუკა — pin-ი ზუსტ ადგილს მონიშნავს'}
         </p>
-        <div className="relative h-56 rounded-xl overflow-hidden border border-border/50 bg-secondary">
+        <div className="relative h-60 rounded-xl overflow-hidden border border-border/50 bg-secondary touch-none">
           <div ref={setMapNode} className="absolute inset-0 z-0" />
-          {reverseLoading && (
+
+          {/* Centered pin — pure CSS overlay, no Leaflet marker */}
+          <div className="pointer-events-none absolute inset-0 z-[400] flex items-center justify-center">
+            <div
+              className={`relative -translate-y-3 transition-transform ${
+                moving ? '-translate-y-5 scale-110' : ''
+              }`}
+            >
+              {/* drop-shadow grows when lifted (during pan) */}
+              <div
+                className={`absolute left-1/2 top-full h-1.5 w-5 -translate-x-1/2 rounded-full bg-black/40 blur-sm transition-all ${
+                  moving ? 'w-6 opacity-70' : 'opacity-50'
+                }`}
+              />
+              {/* the pin itself — orange teardrop */}
+              <div
+                className="rotate-[-45deg] rounded-tr-full rounded-tl-full rounded-br-full border-[3px] border-white shadow-lg"
+                style={{
+                  width: 30,
+                  height: 30,
+                  background: 'hsl(36, 89%, 54%)',
+                }}
+              >
+                <div
+                  className="absolute rounded-full bg-white"
+                  style={{ top: 8, left: 8, width: 11, height: 11 }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* "Resolving..." chip while geocoding */}
+          {reverseLoading && !moving && (
             <div className="absolute top-2 right-2 z-[500] bg-background/80 backdrop-blur rounded-full px-2.5 py-1 flex items-center gap-1.5 text-[11px] text-foreground shadow">
               <Loader2 className="h-3 w-3 animate-spin" />
               {locale === 'en' ? 'Resolving...' : 'მისამართი იძებნება...'}
             </div>
           )}
         </div>
+
+        {/* Photo-EXIF badge — shown only while the chosen lat/lng matches the photo */}
+        {isPhotoLocation && (
+          <p className="flex items-center gap-1.5 text-[11px] text-primary">
+            <Camera className="h-3 w-3" />
+            {locale === 'en'
+              ? 'Photo was taken at this location'
+              : 'ფოტო გადაღებულია ამ ლოკაციაზე'}
+          </p>
+        )}
       </div>
 
       <div className="text-center text-xs text-muted-foreground">
         {locale === 'en' ? 'or search address' : 'ან მოძებნე მისამართი'}
       </div>
 
-      {/* Search input */}
       <div ref={inputWrapRef} className="relative">
         <div className="flex items-center gap-2 border-b border-border/50 pb-1.5">
           <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />

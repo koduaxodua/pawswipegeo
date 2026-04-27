@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
+import exifr from 'exifr';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
 import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LocationPicker } from '@/components/LocationPicker';
-import { useT } from '@/contexts/Locale';
+import { useT, useLocale } from '@/contexts/Locale';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -32,12 +33,43 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
   });
 };
 
+/** Reverse-geocode (mirrors LocationPicker logic) — used only when EXIF GPS is found. */
+async function reverseLabel(lat: number, lng: number, lang: string): Promise<string> {
+  for (const zoom of [18, 17, 16]) {
+    try {
+      const url = new URL('https://nominatim.openstreetmap.org/reverse');
+      url.searchParams.set('lat', String(lat));
+      url.searchParams.set('lon', String(lng));
+      url.searchParams.set('format', 'json');
+      url.searchParams.set('addressdetails', '1');
+      url.searchParams.set('zoom', String(zoom));
+      url.searchParams.set('accept-language', lang);
+      const res = await fetch(url.toString());
+      if (!res.ok) continue;
+      const data = await res.json();
+      const a = data?.address ?? {};
+      const street = a.road || a.pedestrian || a.residential || a.street || a.path;
+      const num = a.house_number;
+      const line = street && num ? `${street} ${num}` : street || a.neighbourhood || a.quarter || a.suburb || '';
+      const area = a.city || a.town || a.village;
+      const parts = [line, area].filter(Boolean);
+      if (a.road && a.house_number) return parts.join(', '); // best — return immediately
+      if (parts.length) return parts.join(', '); // partial — keep as fallback, try next zoom
+    } catch {
+      // try next
+    }
+  }
+  return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
 export default function AddDog() {
   const t = useT();
+  const { locale } = useLocale();
   const { addDog } = useDogs();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [photoExifLocation, setPhotoExifLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({
     name: '',
     age: '',
@@ -70,10 +102,32 @@ export default function AddDog() {
     }
     setUploading(true);
     try {
-      const compressed = await compressImage(file);
-      update('photo', compressed);
+      // Run compression and EXIF parsing in parallel — both work off the same file
+      const [compressed, gps] = await Promise.all([
+        compressImage(file),
+        exifr.gps(file).catch(() => null),
+      ]);
+
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
-      toast({ title: t('addDog.toast.uploaded', { size: sizeKB }) });
+
+      if (gps && typeof gps.latitude === 'number' && typeof gps.longitude === 'number') {
+        // Auto-fill the location from photo EXIF — overrides whatever the user
+        // had set previously. Reverse-geocode in the background for a label.
+        const lat = gps.latitude;
+        const lng = gps.longitude;
+        const label = await reverseLabel(lat, lng, locale === 'en' ? 'en,ka' : 'ka,en');
+        setForm(prev => ({ ...prev, photo: compressed, lat, lng, location: label }));
+        setPhotoExifLocation({ lat, lng });
+        toast({
+          title:
+            locale === 'en'
+              ? `Photo uploaded (${sizeKB}KB) · location detected ✓`
+              : `ფოტო ატვირთულია (${sizeKB}KB) · ლოკაცია ამოცნობილია ✓`,
+        });
+      } else {
+        update('photo', compressed);
+        toast({ title: t('addDog.toast.uploaded', { size: sizeKB }) });
+      }
     } catch {
       toast({ title: t('addDog.toast.failed'), variant: 'destructive' });
     } finally {
@@ -159,6 +213,7 @@ export default function AddDog() {
           lat={form.lat}
           lng={form.lng}
           locationLabel={form.location}
+          photoExif={photoExifLocation}
           onChange={({ lat, lng, label }) =>
             setForm(prev => ({ ...prev, lat, lng, location: label }))
           }
