@@ -61,7 +61,7 @@ export function useT() {
 // === Translations ===
 const TRANSLATIONS = {
   // App
-  'app.title':              { ka: 'Pet Rescue Georgia', en: 'Pet Rescue Georgia' },
+  'app.title':              { ka: 'Pet Rescue App', en: 'Pet Rescue App' },
   'app.tagline':            { ka: 'მიუსაფარი ცხოველების გადარჩენისთვის', en: 'Rescuing homeless pets' },
 
   // Navigation
@@ -166,7 +166,7 @@ const TRANSLATIONS = {
   'tutorial.next':          { ka: 'შემდეგი', en: 'Next' },
   'tutorial.start':         { ka: 'დაწყება', en: 'Get started' },
   'tutorial.s1.title':      { ka: 'მოგესალმებით 🐾', en: 'Welcome 🐾' },
-  'tutorial.s1.desc':       { ka: 'Pet Rescue Georgia — სვაიპით იპოვე შენი ახალი ოთხფეხა მეგობარი.', en: 'Pet Rescue Georgia — swipe to find your new four-legged friend.' },
+  'tutorial.s1.desc':       { ka: 'Pet Rescue App — სვაიპით იპოვე შენი ახალი ოთხფეხა მეგობარი.', en: 'Pet Rescue App — swipe to find your new four-legged friend.' },
   'tutorial.s2.title':      { ka: 'მარჯვნივ — მომწონს', en: 'Right — Like' },
   'tutorial.s2.desc':       { ka: 'დაასვაიპე ბარათი მარჯვნივ ან დააჭირე ❤️ ღილაკს, რომ მოიწონო ცხოველი. მათ შემდგომ იპოვი "მოწონებულების" გვერდზე.', en: "Swipe the card right or tap ❤️ to like a pet. You'll find them later on the \"Liked\" page." },
   'tutorial.s3.title':      { ka: 'მარცხნივ — შემდეგი', en: 'Left — Next' },

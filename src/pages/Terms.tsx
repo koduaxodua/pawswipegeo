@@ -1,4 +1,4 @@
-import { FileText, Facebook, Instagram } from 'lucide-react';
+import { FileText, Instagram } from 'lucide-react';
 import { useLocale } from '@/contexts/Locale';
 
 export default function Terms() {
@@ -16,7 +16,7 @@ function TermsKa() {
 
       <div className="space-y-4">
         <Section title="1. ზოგადი დებულებები">
-          <p>Pet Rescue Georgia არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
+          <p>Pet Rescue App არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
         </Section>
 
         <Section title="2. ცხოველთა დაცვის კანონი">
@@ -47,7 +47,7 @@ function TermsKa() {
         </Section>
 
         <Section title="5. პასუხისმგებლობის შეზღუდვა">
-          <p>Pet Rescue Georgia:</p>
+          <p>Pet Rescue App:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>არ არის პასუხისმგებელი მომხმარებლებს შორის კომუნიკაციის შედეგებზე</li>
             <li>არ იძლევა გარანტიას ატვირთული ინფორმაციის სიზუსტეზე</li>
@@ -57,7 +57,7 @@ function TermsKa() {
         </Section>
 
         <Section title="6. ინტელექტუალური საკუთრება">
-          <p>Pet Rescue Georgia-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
+          <p>Pet Rescue App-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
         </Section>
 
         <Section title="7. დავების გადაწყვეტა">
@@ -80,7 +80,7 @@ function TermsEn() {
 
       <div className="space-y-4">
         <Section title="1. General">
-          <p>Pet Rescue Georgia is a non-commercial platform that helps homeless dogs and cats find new homes. The platform operates within Georgian (country) law.</p>
+          <p>Pet Rescue App is a non-commercial platform that helps homeless dogs and cats find new homes. The platform operates within Georgian (country) law.</p>
         </Section>
 
         <Section title="2. Animal Welfare Law">
@@ -111,7 +111,7 @@ function TermsEn() {
         </Section>
 
         <Section title="5. Limitation of Liability">
-          <p>Pet Rescue Georgia:</p>
+          <p>Pet Rescue App:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>Is not liable for the outcomes of communication between users</li>
             <li>Does not guarantee the accuracy of uploaded information</li>
@@ -121,7 +121,7 @@ function TermsEn() {
         </Section>
 
         <Section title="6. Intellectual Property">
-          <p>Pet Rescue Georgia's design, logo, and content are protected under Georgian copyright law. Photos uploaded by users remain their property.</p>
+          <p>Pet Rescue App's design, logo, and content are protected under Georgian copyright law. Photos uploaded by users remain their property.</p>
         </Section>
 
         <Section title="7. Disputes">
@@ -156,15 +156,6 @@ function Footer() {
           {locale === 'en' ? 'Contact' : 'კონტაქტი'}
         </p>
         <div className="flex flex-col items-center gap-1.5">
-          <a
-            href="https://www.facebook.com/profile.php?id=61566471334047"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <Facebook className="h-4 w-4" />
-            Pet Rescue Georgia
-          </a>
           <a
             href="https://www.instagram.com/1kodua/"
             target="_blank"

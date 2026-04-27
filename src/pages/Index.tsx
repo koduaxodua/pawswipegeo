@@ -8,7 +8,6 @@ import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
 import { Heart, X, RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Logo } from '@/components/Logo';
 import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
@@ -61,14 +60,11 @@ export default function Index() {
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-6 pb-safe-nav safe-area-top overflow-hidden">
-      {/* Header — PRG on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
+      {/* Header — title on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
       <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-24">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Logo />
-          <div className="flex flex-col leading-tight min-w-0">
-            <span className="text-sm sm:text-base font-bold text-foreground truncate">{t('app.title')}</span>
-            <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
-          </div>
+        <div className="flex flex-col leading-tight min-w-0">
+          <span className="text-base sm:text-lg font-bold text-foreground truncate">{t('app.title')}</span>
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
         </div>
       </div>
 
