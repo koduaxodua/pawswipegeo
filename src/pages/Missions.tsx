@@ -18,9 +18,9 @@ export default function Missions() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="flex-1 flex flex-col items-center justify-center text-center px-2 -mt-8"
       >
-        <div className="glass-strong rounded-[2rem] p-8 sm:p-10 max-w-md w-full relative overflow-hidden">
-          <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-primary/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-12 -left-12 h-36 w-36 rounded-full bg-accent/20 blur-3xl" />
+        <div className="glass-strong rounded-3xl p-8 sm:p-10 max-w-md w-full relative overflow-hidden">
+          <div className="pointer-events-none absolute -top-20 -right-20 h-44 w-44 rounded-full bg-primary/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-40 w-40 rounded-full bg-accent/20 blur-3xl" />
 
           <div className="relative flex flex-col items-center">
             <Badge variant="secondary" className="mb-5 border-primary/30 bg-primary/15 text-primary">

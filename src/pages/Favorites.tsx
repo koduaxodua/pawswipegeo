@@ -88,7 +88,7 @@ export default function Favorites() {
 
 function EmptyState({ emoji, title, subtitle }: { emoji: string; title: string; subtitle: string }) {
   return (
-    <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center mt-8 max-w-md mx-auto">
+    <div className="flex flex-col items-center justify-center glass rounded-3xl p-6 text-center mt-8 max-w-md mx-auto">
       <span className="text-5xl mb-4">{emoji}</span>
       <h2 className="text-lg font-semibold text-foreground mb-2">{title}</h2>
       <p className="text-muted-foreground text-sm">{subtitle}</p>

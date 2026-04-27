@@ -41,7 +41,7 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-[85dvh] rounded-t-3xl glass-strong !left-1/2 !-translate-x-1/2 !max-w-lg !w-full p-0 flex flex-col">
         {/* drag handle */}
-        <div className="mx-auto w-10 h-1 rounded-full bg-muted-foreground/30 mt-2 mb-2 flex-shrink-0" />
+        <div className="mx-auto w-12 h-1.5 rounded-full bg-muted-foreground/50 mt-2 mb-2 flex-shrink-0" />
         <SheetHeader className="px-5 flex-shrink-0">
           <SheetTitle className="text-xl font-bold text-foreground">{dog.name}</SheetTitle>
         </SheetHeader>
@@ -55,34 +55,34 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
           />
 
           <div className="grid grid-cols-2 gap-2">
-            <InfoChip icon={<Calendar className="h-3.5 w-3.5" />} label={t('detail.label.age')} value={dog.age} />
-            <InfoChip icon={<Heart className="h-3.5 w-3.5" />} label={t('detail.label.gender')} value={genderLabel} />
-            <InfoChip icon={<MapPin className="h-3.5 w-3.5" />} label={t('detail.label.location')} value={dog.location} />
-            <InfoChip icon={<Shield className="h-3.5 w-3.5" />} label={t('detail.label.breed')} value={dog.breed} />
+            <InfoChip icon={<Calendar className="h-4 w-4" />} label={t('detail.label.age')} value={dog.age} />
+            <InfoChip icon={<Heart className="h-4 w-4" />} label={t('detail.label.gender')} value={genderLabel} />
+            <InfoChip icon={<MapPin className="h-4 w-4" />} label={t('detail.label.location')} value={dog.location} />
+            <InfoChip icon={<Shield className="h-4 w-4" />} label={t('detail.label.breed')} value={dog.breed} />
           </div>
 
           {dog.description && (
-            <div className="glass rounded-xl p-3 space-y-1.5">
+            <div className="glass rounded-xl p-4 space-y-1.5">
               <h3 className="text-sm font-semibold text-foreground">{t('detail.section.description')}</h3>
               <p className="text-xs text-muted-foreground leading-relaxed">{dog.description}</p>
             </div>
           )}
 
           {dog.personality && (
-            <div className="glass rounded-xl p-3 space-y-1.5">
+            <div className="glass rounded-xl p-4 space-y-1.5">
               <h3 className="text-sm font-semibold text-foreground">{t('detail.section.personality')}</h3>
               <p className="text-xs text-muted-foreground">{dog.personality}</p>
             </div>
           )}
 
           {dog.health && (
-            <div className="glass rounded-xl p-3 space-y-1.5">
+            <div className="glass rounded-xl p-4 space-y-1.5">
               <h3 className="text-sm font-semibold text-foreground">{t('detail.section.health')}</h3>
               <p className="text-xs text-muted-foreground">{dog.health}</p>
             </div>
           )}
 
-          <div className="glass rounded-xl p-3">
+          <div className="glass rounded-xl p-4">
             <h3 className="text-sm font-semibold text-foreground mb-1.5">{t('detail.section.caretaker')}</h3>
             {dog.caretakerName && <p className="text-xs text-muted-foreground">{dog.caretakerName}</p>}
             <a
@@ -101,8 +101,8 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
             onClick={handleDeleteRequest}
             className={`w-full inline-flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-medium transition active:scale-[0.98] ${
               requested
-                ? 'bg-secondary text-foreground border border-border'
-                : 'bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20'
+                ? 'bg-secondary text-foreground border-2 border-border'
+                : 'bg-destructive/10 text-destructive border-2 border-destructive/30 hover:bg-destructive/20'
             }`}
           >
             {requested ? <Check className="h-4 w-4" /> : <Trash2 className="h-4 w-4" />}
@@ -116,11 +116,11 @@ export function DogDetailSheet({ dog: rawDog, open, onOpenChange }: Props) {
 
 function InfoChip({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="glass rounded-lg p-2.5 flex items-start gap-2">
+    <div className="glass rounded-xl p-3 flex items-start gap-2">
       <span className="text-primary mt-0.5">{icon}</span>
-      <div>
-        <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-        <p className="text-xs font-medium text-foreground">{value}</p>
+      <div className="min-w-0">
+        <p className="text-xs text-muted-foreground leading-tight">{label}</p>
+        <p className="text-sm font-medium text-foreground truncate">{value}</p>
       </div>
     </div>
   );

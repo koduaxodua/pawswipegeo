@@ -74,7 +74,7 @@ export default function Index() {
 
       {allSwiped ? (
         <div className="flex-1 flex flex-col items-center justify-center w-full">
-          <div className="flex flex-col items-center justify-center glass rounded-3xl p-8 text-center max-w-sm sm:max-w-md">
+          <div className="flex flex-col items-center justify-center glass rounded-3xl p-6 text-center max-w-sm sm:max-w-md">
             <span className="text-6xl mb-4">🐾</span>
             <h2 className="text-xl font-semibold text-foreground mb-2">
               {t('index.allSwiped.title')}
@@ -122,33 +122,31 @@ export default function Index() {
             </AnimatePresence>
           </div>
 
-          {/* Action buttons + Map button row — always visible */}
+          {/* Action buttons + Map button row — always visible. Asymmetry is intentional (Tinder-style emphasis on Like). */}
           <div className="flex items-center gap-4 flex-shrink-0">
             <button
               onClick={() => handleSwipe('left')}
               disabled={showAd}
-              className="glass h-13 w-13 sm:h-14 sm:w-14 rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass h-[52px] w-[52px] rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label={t('index.action.skip')}
-              style={{ height: 52, width: 52 }}
             >
               <X className="h-6 w-6" />
             </button>
 
             <button
               onClick={() => setMapOpen(true)}
-              className="glass inline-flex items-center gap-1.5 px-4 py-2.5 rounded-full text-foreground hover:scale-105 active:scale-95 transition-transform"
+              className="glass inline-flex items-center gap-1.5 h-[52px] px-4 rounded-full bg-primary/10 hover:scale-105 active:scale-95 transition-transform"
               aria-label={t('index.action.map')}
             >
               <Map className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">{t('index.action.map')}</span>
+              <span className="text-sm font-semibold text-primary">{t('index.action.map')}</span>
             </button>
 
             <button
               onClick={() => handleSwipe('right')}
               disabled={showAd}
-              className="glass rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass h-[60px] w-[60px] rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label={t('index.action.like')}
-              style={{ height: 60, width: 60 }}
             >
               <Heart className="h-7 w-7" fill="currentColor" />
             </button>

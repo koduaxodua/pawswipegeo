@@ -58,7 +58,7 @@ export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop }: SwipeCardProps
       exit={{ x: 300, opacity: 0, transition: { duration: 0.3 } }}
       onClick={handleClick}
     >
-      <div className="relative h-full w-full overflow-hidden rounded-3xl glass-strong">
+      <div className="relative h-full w-full overflow-hidden rounded-3xl glass-strong shadow-xl">
         <img
           src={dog.photo}
           alt={dog.name}

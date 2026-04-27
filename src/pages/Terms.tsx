@@ -136,7 +136,7 @@ function TermsEn() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="glass rounded-2xl p-4">
+    <div className="glass rounded-3xl p-4">
       <h2 className="font-semibold text-foreground mb-2">{title}</h2>
       <div className="text-sm text-muted-foreground leading-relaxed">{children}</div>
     </div>
