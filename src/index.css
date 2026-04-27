@@ -90,6 +90,12 @@
     @apply bg-background text-foreground;
     font-family: 'Noto Sans Georgian', sans-serif;
   }
+
+  /* Keyboard-only focus ring on raw <button>/<a> elements (shadcn Button has its own) */
+  button:focus-visible,
+  a:focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer utilities {
