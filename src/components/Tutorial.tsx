@@ -80,8 +80,8 @@ export function Tutorial() {
             {steps.map((_, i) => (
               <div
                 key={i}
-                className={`h-1.5 rounded-full transition-all ${
-                  i === step ? 'w-8 bg-primary' : i < step ? 'w-1.5 bg-primary/60' : 'w-1.5 bg-muted'
+                className={`rounded-full transition-all ${
+                  i === step ? 'w-10 h-2.5 bg-primary' : i < step ? 'w-2 h-2 bg-primary/60' : 'w-2 h-2 bg-muted'
                 }`}
               />
             ))}

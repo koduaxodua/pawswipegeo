@@ -95,13 +95,15 @@ export function AdBanner({ onDismiss }: AdBannerProps) {
           disabled={skipIn > 0}
           className="w-full inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-medium hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {skipIn > 0
-            ? locale === 'en'
-              ? `Skip in ${skipIn}s`
-              : `გამოტოვება ${skipIn} წმ-ში`
-            : locale === 'en'
-            ? 'Continue →'
-            : 'გაგრძელება →'}
+          <span className="text-xs sm:text-sm whitespace-nowrap">
+            {skipIn > 0
+              ? locale === 'en'
+                ? `Skip in ${skipIn}s`
+                : `გამოტოვება ${skipIn} წმ-ში`
+              : locale === 'en'
+              ? 'Continue →'
+              : 'გაგრძელება →'}
+          </span>
         </button>
       </div>
     </motion.div>

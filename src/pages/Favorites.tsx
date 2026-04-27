@@ -23,11 +23,11 @@ export default function Favorites() {
 
       <Tabs defaultValue="liked" className="w-full">
         <TabsList className="grid w-full grid-cols-2 glass mb-4">
-          <TabsTrigger value="liked" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-foreground">
+          <TabsTrigger value="liked" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-foreground hover:bg-secondary/40 transition">
             <Heart className="h-4 w-4 mr-1.5" fill="currentColor" />
             {t('favorites.tab.liked', { n: likedDogs.length })}
           </TabsTrigger>
-          <TabsTrigger value="disliked" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground text-foreground">
+          <TabsTrigger value="disliked" className="data-[state=active]:bg-destructive data-[state=active]:text-destructive-foreground text-foreground hover:bg-secondary/40 transition">
             <X className="h-4 w-4 mr-1.5" />
             {t('favorites.tab.disliked', { n: dislikedDogs.length })}
           </TabsTrigger>
