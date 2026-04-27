@@ -4,7 +4,7 @@ import { useDogs } from '@/hooks/useDogs';
 import { useDeleteRequests } from '@/hooks/useDeleteRequests';
 import { useAdminMode } from '@/contexts/AdminMode';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, ensureAnonAuth } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
 import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
@@ -24,21 +24,36 @@ export default function Admin() {
 
   /**
    * Soft-delete: sets status='hidden' so the pet vanishes from the public feed
-   * (`pets_public_read` policy filters by status='available'). Falls back to
-   * local-only removal for non-UUID seed dogs that aren't in Supabase.
+   * (`pets_public_read` policy filters by status='available').
+   *
+   * Critical: must call ensureAnonAuth() FIRST. The pets_authed_update RLS
+   * policy requires auth.role()='authenticated', and we don't get that role
+   * until a Supabase session exists. Anonymous users that never uploaded a
+   * pet have no session yet, so updates silently match 0 rows.
+   *
+   * We also use { count: 'exact' } to reliably detect 0-row updates — without
+   * it, Supabase returns success even when RLS filtered everything out.
    */
   const handleHide = async (dog: Dog) => {
     if (!confirm(t('admin.hide.confirm', { name: dog.name }))) return;
     setHiding(dog.id);
     try {
       if (isSupabaseConfigured && supabase && isUuid(dog.id)) {
-        // .select() forces Postgres to RETURN the affected rows — without it,
-        // RLS-blocked updates silently return [] with no error.
-        const { data, error } = await supabase
+        // Establish (or reuse) an anonymous session so auth.role()='authenticated'
+        const userId = await ensureAnonAuth();
+        if (!userId) {
+          toast({
+            title: t('admin.hide.failed'),
+            description: 'auth',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        const { error, count } = await supabase
           .from('pets')
-          .update({ status: 'hidden' })
-          .eq('id', dog.id)
-          .select();
+          .update({ status: 'hidden' }, { count: 'exact' })
+          .eq('id', dog.id);
 
         if (error) {
           console.error('[admin] hide failed:', error);
@@ -47,19 +62,18 @@ export default function Admin() {
             description: error.message,
             variant: 'destructive',
           });
-        } else if (!data || data.length === 0) {
-          // RLS blocked the update — 0 rows affected, no error thrown
-          console.warn('[admin] update returned 0 rows — RLS likely blocking');
+          return;
+        }
+        if (count === 0) {
+          console.warn('[admin] update affected 0 rows — RLS or pet missing');
           toast({
             title: t('admin.hide.rlsBlocked'),
             description: t('admin.hide.rlsBlockedDesc'),
             variant: 'destructive',
           });
-          // Don't clear from local list so user can retry after fixing RLS
           return;
-        } else {
-          toast({ title: t('admin.hidden.db', { name: dog.name }) });
         }
+        toast({ title: t('admin.hidden.db', { name: dog.name }) });
       } else {
         toast({ title: t('admin.hidden.local', { name: dog.name }) });
       }
