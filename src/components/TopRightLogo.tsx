@@ -12,11 +12,11 @@ export function TopRightLogo() {
     <div className="fixed top-4 right-3 z-30 flex flex-col items-end gap-1.5 safe-area-top pointer-events-none">
       {!imgFailed && (
         <a
-          href="https://github.com/koduaxodua"
+          href="https://www.instagram.com/1kodua/"
           target="_blank"
           rel="noopener noreferrer"
           className="pointer-events-auto"
-          aria-label="KODUA"
+          aria-label="KODUA on Instagram (@1kodua)"
         >
           <img
             src="/brand/kodua.jpg"

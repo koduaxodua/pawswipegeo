@@ -1,4 +1,4 @@
-import { FileText } from 'lucide-react';
+import { FileText, Facebook, Instagram } from 'lucide-react';
 import { useLocale } from '@/contexts/Locale';
 
 export default function Terms() {
@@ -146,20 +146,36 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Footer() {
   const { locale } = useLocale();
   return (
-    <div className="glass rounded-2xl p-4 text-center">
+    <div className="glass rounded-3xl p-4 text-center space-y-3">
       <p className="text-xs text-muted-foreground">
         {locale === 'en' ? 'Last updated: April 2026' : 'ბოლო განახლება: 2026 წლის აპრილი'}
       </p>
-      <p className="text-xs mt-1">
-        <a
-          href="https://www.facebook.com/profile.php?id=61566471334047"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline"
-        >
-          Facebook · Pet Rescue Georgia
-        </a>
-      </p>
+
+      <div className="space-y-2">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/70">
+          {locale === 'en' ? 'Contact' : 'კონტაქტი'}
+        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          <a
+            href="https://www.facebook.com/profile.php?id=61566471334047"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <Facebook className="h-4 w-4" />
+            Pet Rescue Georgia
+          </a>
+          <a
+            href="https://www.instagram.com/1kodua/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <Instagram className="h-4 w-4" />
+            @1kodua
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
