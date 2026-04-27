@@ -116,7 +116,7 @@ export default function AddDog() {
 
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
 
-      if (gps && typeof gps.latitude === 'number' && typeof gps.longitude === 'number') {
+      if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
         // Auto-fill the location from photo EXIF — overrides whatever the user
         // had set previously. Reverse-geocode in the background for a label.
         const lat = gps.latitude;

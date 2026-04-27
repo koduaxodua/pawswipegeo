@@ -174,6 +174,7 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
   initialPosRef.current = { lat, lng };
 
   const reverseAndUpdate = useCallback((newLat: number, newLng: number) => {
+    if (!Number.isFinite(newLat) || !Number.isFinite(newLng)) return;
     if (reverseDebounceRef.current) window.clearTimeout(reverseDebounceRef.current);
     setReverseLoading(true);
     reverseDebounceRef.current = window.setTimeout(async () => {
@@ -240,13 +241,14 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
 
   // When parent lat/lng changes (GPS button, search, EXIF), fly the map there.
   // The moveend handler suppresses self-update via programmaticRef.
+  // Guard against NaN/Infinity — Leaflet throws "Invalid LatLng object" otherwise.
   useEffect(() => {
     if (!mapRef.current) return;
-    if (typeof lat !== 'number' || typeof lng !== 'number') return;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     const center = mapRef.current.getCenter();
-    if (Math.abs(center.lat - lat) < 1e-6 && Math.abs(center.lng - lng) < 1e-6) return;
+    if (Math.abs(center.lat - (lat as number)) < 1e-6 && Math.abs(center.lng - (lng as number)) < 1e-6) return;
     programmaticRef.current = true;
-    mapRef.current.flyTo([lat, lng], 17, { duration: 0.6 });
+    mapRef.current.flyTo([lat as number, lng as number], 17, { duration: 0.6 });
   }, [lat, lng]);
 
   // Search dropdown positioning
