@@ -164,6 +164,14 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
   const programmaticRef = useRef(false);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
+  const localeRef = useRef(locale);
+  localeRef.current = locale;
+  // Keep the most recent props in refs so the (stable) map init / event handlers
+  // can read them without forcing the callback ref to change identity. Changing
+  // setMapNode's identity would tear down and rebuild the map on every prop change
+  // (e.g. when EXIF auto-fills lat/lng), which caused a black screen.
+  const initialPosRef = useRef<{ lat?: number; lng?: number }>({ lat, lng });
+  initialPosRef.current = { lat, lng };
 
   const reverseAndUpdate = useCallback((newLat: number, newLng: number) => {
     if (reverseDebounceRef.current) window.clearTimeout(reverseDebounceRef.current);
@@ -173,16 +181,20 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
       const data = await reverseGeocode(
         newLat,
         newLng,
-        locale === 'en' ? 'en,ka' : 'ka,en'
+        localeRef.current === 'en' ? 'en,ka' : 'ka,en'
       );
       if (data) label = buildShortLabel(data) || label;
       onChangeRef.current({ lat: newLat, lng: newLng, label });
       setQuery(label);
       setReverseLoading(false);
     }, 400);
-  }, [locale]);
+  }, []);
+  const reverseAndUpdateRef = useRef(reverseAndUpdate);
+  reverseAndUpdateRef.current = reverseAndUpdate;
 
-  // Initialize map once (callback ref pattern — fires when DOM mounts)
+  // Stable callback ref — created with [] deps so React never rebinds it,
+  // which means the map is created exactly once when the DOM mounts and torn
+  // down only when the component unmounts.
   const setMapNode = useCallback((node: HTMLDivElement | null) => {
     containerRef.current = node;
     if (!node) {
@@ -194,12 +206,15 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
     }
     if (mapRef.current) return;
 
+    const { lat: initLat, lng: initLng } = initialPosRef.current;
     const initialCenter: L.LatLngTuple =
-      typeof lat === 'number' && typeof lng === 'number' ? [lat, lng] : DEFAULT_CENTER;
+      typeof initLat === 'number' && typeof initLng === 'number'
+        ? [initLat, initLng]
+        : DEFAULT_CENTER;
 
     const map = L.map(node, {
       center: initialCenter,
-      zoom: typeof lat === 'number' ? 17 : 12,
+      zoom: typeof initLat === 'number' ? 17 : 12,
       zoomControl: true,
       attributionControl: false,
     });
@@ -207,23 +222,21 @@ export function LocationPicker({ lat, lng, locationLabel, photoExif, onChange }:
       maxZoom: 19,
     }).addTo(map);
 
-    // Show movement indicator while user is panning
     map.on('movestart', () => setMoving(true));
     map.on('moveend', () => {
       setMoving(false);
-      // Skip programmatic moves (flyTo from GPS/search already updated state)
       if (programmaticRef.current) {
         programmaticRef.current = false;
         return;
       }
       const c = map.getCenter();
-      reverseAndUpdate(c.lat, c.lng);
+      reverseAndUpdateRef.current(c.lat, c.lng);
     });
 
     mapRef.current = map;
     requestAnimationFrame(() => map.invalidateSize());
     setTimeout(() => map.invalidateSize(), 350);
-  }, [lat, lng, reverseAndUpdate]);
+  }, []);
 
   // When parent lat/lng changes (GPS button, search, EXIF), fly the map there.
   // The moveend handler suppresses self-update via programmaticRef.

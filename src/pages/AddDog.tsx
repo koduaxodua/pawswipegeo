@@ -102,11 +102,17 @@ export default function AddDog() {
     }
     setUploading(true);
     try {
-      // Run compression and EXIF parsing in parallel — both work off the same file
-      const [compressed, gps] = await Promise.all([
-        compressImage(file),
-        exifr.gps(file).catch(() => null),
-      ]);
+      // Run compression and EXIF parsing in parallel — both work off the same file.
+      // exifr.gps can throw synchronously on malformed/HEIC files, so we wrap in
+      // an async IIFE so the rejection is caught by Promise.all not the outer try.
+      const safeExif = (async () => {
+        try {
+          return await exifr.gps(file);
+        } catch {
+          return null;
+        }
+      })();
+      const [compressed, gps] = await Promise.all([compressImage(file), safeExif]);
 
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
 
