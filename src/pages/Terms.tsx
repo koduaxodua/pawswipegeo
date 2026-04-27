@@ -9,7 +9,7 @@ export default function Terms() {
 function TermsKa() {
   return (
     <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-6 pr-topbar">
         <FileText className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">წესები და პირობები</h1>
       </div>
@@ -73,7 +73,7 @@ function TermsKa() {
 function TermsEn() {
   return (
     <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-6 pr-topbar">
         <FileText className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">Terms & Conditions</h1>
       </div>

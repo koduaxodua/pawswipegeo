@@ -16,7 +16,7 @@ export default function Favorites() {
 
   return (
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-4xl mx-auto">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-6 pr-topbar">
         <Heart className="h-6 w-6 text-accent" fill="currentColor" />
         <h1 className="text-2xl font-bold text-foreground">{t('favorites.title')}</h1>
       </div>

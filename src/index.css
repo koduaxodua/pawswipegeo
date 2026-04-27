@@ -125,4 +125,9 @@
   .pb-safe-nav {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
   }
+  /* Clear the fixed TopRightLogo (KODUA + LanguageToggle) — apply to any
+     page header row that lives under it so content doesn't slide behind. */
+  .pr-topbar {
+    padding-right: 6rem; /* ~96px — covers KODUA logo h-5 + LangToggle */
+  }
 }

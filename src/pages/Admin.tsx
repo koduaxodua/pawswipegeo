@@ -87,8 +87,8 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto">
-      {/* Header bar */}
-      <div className="flex items-center justify-between mb-4 glass-strong rounded-2xl px-4 py-3 border border-destructive/40">
+      {/* Header bar — pr-topbar clears the fixed KODUA + lang toggle, mt-12 keeps the bar below them on narrow screens */}
+      <div className="flex items-center justify-between mb-4 mt-12 sm:mt-0 glass-strong rounded-3xl px-4 py-3 border border-destructive/40">
         <div className="flex items-center gap-2">
           <ShieldAlert className="h-5 w-5 text-destructive" />
           <div>

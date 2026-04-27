@@ -61,7 +61,7 @@ export default function Index() {
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-6 pb-safe-nav safe-area-top overflow-hidden">
       {/* Header — title on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
-      <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-24">
+      <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-topbar">
         <div className="flex flex-col leading-tight min-w-0">
           <span className="text-base sm:text-lg font-bold text-foreground truncate">{t('app.title')}</span>
           <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
@@ -69,7 +69,7 @@ export default function Index() {
       </div>
 
       {allSwiped ? (
-        <div className="flex-1 flex flex-col items-center justify-center w-full">
+        <div className="flex-1 flex flex-col items-center justify-center w-full gap-4">
           <div className="flex flex-col items-center justify-center glass rounded-3xl p-6 text-center max-w-sm sm:max-w-md">
             <span className="text-6xl mb-4">🐾</span>
             <h2 className="text-xl font-semibold text-foreground mb-2">
@@ -81,15 +81,25 @@ export default function Index() {
             <p className="text-muted-foreground mb-6 text-sm">
               {t('index.allSwiped.hint')}
             </p>
-            {dislikedDogs.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {dislikedDogs.length > 0 && (
+                <button
+                  onClick={handleReset}
+                  className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-full font-medium hover:opacity-90 transition active:scale-[0.98]"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  {t('index.resetDisliked')}
+                </button>
+              )}
               <button
-                onClick={handleReset}
-                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-full font-medium hover:opacity-90 transition"
+                onClick={() => setMapOpen(true)}
+                className="glass inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary/10 hover:scale-105 active:scale-95 transition-transform"
+                aria-label={t('index.action.map')}
               >
-                <RotateCcw className="h-4 w-4" />
-                {t('index.resetDisliked')}
+                <Map className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-primary">{t('index.action.map')}</span>
               </button>
-            )}
+            </div>
           </div>
         </div>
       ) : (

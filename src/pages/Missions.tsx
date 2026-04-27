@@ -7,7 +7,7 @@ export default function Missions() {
   const t = useT();
   return (
     <div className="min-h-screen pb-24 pt-4 px-4 max-w-3xl mx-auto flex flex-col">
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-2 mb-6 pr-topbar">
         <Trophy className="h-6 w-6 text-primary" />
         <h1 className="text-2xl font-bold text-foreground">{t('missions.title')}</h1>
       </div>
