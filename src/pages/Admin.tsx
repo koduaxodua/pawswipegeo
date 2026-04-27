@@ -32,13 +32,31 @@ export default function Admin() {
     setHiding(dog.id);
     try {
       if (isSupabaseConfigured && supabase && isUuid(dog.id)) {
-        const { error } = await supabase.from('pets').update({ status: 'hidden' }).eq('id', dog.id);
+        // .select() forces Postgres to RETURN the affected rows — without it,
+        // RLS-blocked updates silently return [] with no error.
+        const { data, error } = await supabase
+          .from('pets')
+          .update({ status: 'hidden' })
+          .eq('id', dog.id)
+          .select();
+
         if (error) {
+          console.error('[admin] hide failed:', error);
           toast({
             title: t('admin.hide.failed'),
             description: error.message,
             variant: 'destructive',
           });
+        } else if (!data || data.length === 0) {
+          // RLS blocked the update — 0 rows affected, no error thrown
+          console.warn('[admin] update returned 0 rows — RLS likely blocking');
+          toast({
+            title: t('admin.hide.rlsBlocked'),
+            description: t('admin.hide.rlsBlockedDesc'),
+            variant: 'destructive',
+          });
+          // Don't clear from local list so user can retry after fixing RLS
+          return;
         } else {
           toast({ title: t('admin.hidden.db', { name: dog.name }) });
         }

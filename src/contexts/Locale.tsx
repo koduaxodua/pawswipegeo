@@ -188,6 +188,8 @@ const TRANSLATIONS = {
   'admin.hiding':           { ka: 'იმალება...', en: 'Hiding...' },
   'admin.hide.confirm':     { ka: 'დაიმალოს "{name}"? სხვა მომხმარებლებს აღარ უჩანს.', en: 'Hide "{name}"? It will no longer be shown to users.' },
   'admin.hide.failed':      { ka: 'დამალვა ვერ მოხერხდა', en: 'Hiding failed' },
+  'admin.hide.rlsBlocked':  { ka: 'RLS აღკვეთს განახლებას', en: 'RLS is blocking the update' },
+  'admin.hide.rlsBlockedDesc': { ka: 'Supabase-ში გაუშვი admin SQL (იხ. README) რომ ნებისმიერ ადმინს მისცეს უფლება.', en: 'Run the admin SQL in Supabase (see README) to allow admins to update any pet.' },
   'admin.modeOn':           { ka: '🔓 ადმინ რეჟიმი ჩართულია', en: '🔓 Admin mode unlocked' },
   'admin.cleared':          { ka: 'სია გასუფთავდა', en: 'List cleared' },
   'admin.hidden.db':        { ka: '{name} დამალულია — აღარ უჩანს მომხმარებლებს ✓', en: '{name} hidden — no longer shown to users ✓' },
