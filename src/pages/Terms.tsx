@@ -16,7 +16,7 @@ function TermsKa() {
 
       <div className="space-y-4">
         <Section title="1. ზოგადი დებულებები">
-          <p>Pet Rescue App არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
+          <p>mipove.me არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
         </Section>
 
         <Section title="2. ცხოველთა დაცვის კანონი">
@@ -47,7 +47,7 @@ function TermsKa() {
         </Section>
 
         <Section title="5. პასუხისმგებლობის შეზღუდვა">
-          <p>Pet Rescue App:</p>
+          <p>mipove.me:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>არ არის პასუხისმგებელი მომხმარებლებს შორის კომუნიკაციის შედეგებზე</li>
             <li>არ იძლევა გარანტიას ატვირთული ინფორმაციის სიზუსტეზე</li>
@@ -57,7 +57,7 @@ function TermsKa() {
         </Section>
 
         <Section title="6. ინტელექტუალური საკუთრება">
-          <p>Pet Rescue App-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
+          <p>mipove.me-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
         </Section>
 
         <Section title="7. დავების გადაწყვეტა">
@@ -80,7 +80,7 @@ function TermsEn() {
 
       <div className="space-y-4">
         <Section title="1. General">
-          <p>Pet Rescue App is a non-commercial platform that helps homeless dogs and cats find new homes. The platform operates within Georgian (country) law.</p>
+          <p>mipove.me is a non-commercial platform that helps homeless dogs and cats find new homes. The platform operates within Georgian (country) law.</p>
         </Section>
 
         <Section title="2. Animal Welfare Law">
@@ -111,7 +111,7 @@ function TermsEn() {
         </Section>
 
         <Section title="5. Limitation of Liability">
-          <p>Pet Rescue App:</p>
+          <p>mipove.me:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li>Is not liable for the outcomes of communication between users</li>
             <li>Does not guarantee the accuracy of uploaded information</li>
@@ -121,7 +121,7 @@ function TermsEn() {
         </Section>
 
         <Section title="6. Intellectual Property">
-          <p>Pet Rescue App's design, logo, and content are protected under Georgian copyright law. Photos uploaded by users remain their property.</p>
+          <p>mipove.me's design, logo, and content are protected under Georgian copyright law. Photos uploaded by users remain their property.</p>
         </Section>
 
         <Section title="7. Disputes">
