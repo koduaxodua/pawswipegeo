@@ -33,6 +33,59 @@ const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<strin
   });
 };
 
+/**
+ * Extract GPS coordinates from a photo's EXIF.
+ *
+ * Tries three strategies in order:
+ *  1) exifr.gps() helper — fastest, works for typical JPEGs
+ *  2) exifr.parse() with full metadata — catches edge cases where helper returns null
+ *     but the raw GPSLatitude/GPSLongitude fields are present
+ *  3) Manual DMS → decimal conversion from the raw degree/minute/second arrays
+ *
+ * Returns null if no usable GPS could be extracted (HEIC stripped on mobile,
+ * social-media photos, screenshots, photos taken with Location off, etc.).
+ */
+async function extractPhotoGps(file: File): Promise<{ lat: number; lng: number } | null> {
+  // Strategy 1: official helper
+  try {
+    const gps = await exifr.gps(file);
+    if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
+      console.log('[exif] strategy=gps()', gps);
+      return { lat: gps.latitude, lng: gps.longitude };
+    }
+  } catch (err) {
+    console.warn('[exif] gps() threw', err);
+  }
+
+  // Strategy 2 + 3: full parse, then either pre-converted lat/lng or raw DMS fallback
+  try {
+    const data: any = await exifr.parse(file, { gps: true });
+    console.log('[exif] strategy=parse() raw:', data);
+    if (data && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)) {
+      return { lat: data.latitude, lng: data.longitude };
+    }
+    if (data?.GPSLatitude && data?.GPSLongitude) {
+      const toDecimal = (dms: any, ref?: string): number => {
+        if (typeof dms === 'number') return ref === 'S' || ref === 'W' ? -dms : dms;
+        if (!Array.isArray(dms) || dms.length < 3) return NaN;
+        const dec = Number(dms[0]) + Number(dms[1]) / 60 + Number(dms[2]) / 3600;
+        return ref === 'S' || ref === 'W' ? -dec : dec;
+      };
+      const lat = toDecimal(data.GPSLatitude, data.GPSLatitudeRef);
+      const lng = toDecimal(data.GPSLongitude, data.GPSLongitudeRef);
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        console.log('[exif] strategy=DMS', { lat, lng });
+        return { lat, lng };
+      }
+    }
+  } catch (err) {
+    console.warn('[exif] parse() threw', err);
+  }
+
+  console.log('[exif] no GPS found');
+  return null;
+}
+
 /** Reverse-geocode (mirrors LocationPicker logic) — used only when EXIF GPS is found. */
 async function reverseLabel(lat: number, lng: number, lang: string): Promise<string> {
   for (const zoom of [18, 17, 16]) {
@@ -103,27 +156,15 @@ export default function AddDog() {
     setUploading(true);
     try {
       // Run compression and EXIF parsing in parallel — both work off the same file.
-      // exifr.gps can throw synchronously on malformed/HEIC files, so we wrap in
-      // an async IIFE so the rejection is caught by Promise.all not the outer try.
-      const safeExif = (async () => {
-        try {
-          return await exifr.gps(file);
-        } catch {
-          return null;
-        }
-      })();
-      const [compressed, gps] = await Promise.all([compressImage(file), safeExif]);
+      const [compressed, gps] = await Promise.all([compressImage(file), extractPhotoGps(file)]);
 
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
+      console.log('[upload]', { type: file.type, sizeKB, hasGps: !!gps });
 
-      // Console diagnostic so user / dev can see why EXIF is or isn't found
-      console.log('[exif] gps result:', gps);
-
-      if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
+      if (gps) {
         // Auto-fill the location from photo EXIF — overrides whatever the user
         // had set previously. Reverse-geocode in the background for a label.
-        const lat = gps.latitude;
-        const lng = gps.longitude;
+        const { lat, lng } = gps;
         const label = await reverseLabel(lat, lng, locale === 'en' ? 'en,ka' : 'ka,en');
         setForm(prev => ({ ...prev, photo: compressed, lat, lng, location: label }));
         setPhotoExifLocation({ lat, lng });
