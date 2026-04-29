@@ -116,6 +116,9 @@ export default function AddDog() {
 
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
 
+      // Console diagnostic so user / dev can see why EXIF is or isn't found
+      console.log('[exif] gps result:', gps);
+
       if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
         // Auto-fill the location from photo EXIF — overrides whatever the user
         // had set previously. Reverse-geocode in the background for a label.
@@ -127,12 +130,22 @@ export default function AddDog() {
         toast({
           title:
             locale === 'en'
-              ? `Photo uploaded (${sizeKB}KB) · location detected ✓`
-              : `ფოტო ატვირთულია (${sizeKB}KB) · ლოკაცია ამოცნობილია ✓`,
+              ? `📷 Location detected from photo`
+              : `📷 ლოკაცია ფოტოდან ამოცნობილია`,
+          description:
+            locale === 'en'
+              ? `${label} · ${sizeKB}KB`
+              : `${label} · ${sizeKB}KB`,
         });
       } else {
         update('photo', compressed);
-        toast({ title: t('addDog.toast.uploaded', { size: sizeKB }) });
+        toast({
+          title: t('addDog.toast.uploaded', { size: sizeKB }),
+          description:
+            locale === 'en'
+              ? "Photo doesn't have GPS data — set the location on the map below."
+              : 'ფოტოს არ აქვს GPS მონაცემები — მონიშნე ლოკაცია რუკაზე.',
+        });
       }
     } catch {
       toast({ title: t('addDog.toast.failed'), variant: 'destructive' });
