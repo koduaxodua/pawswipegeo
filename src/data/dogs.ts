@@ -12,11 +12,14 @@ export interface Dog {
   location: string;
   lat?: number;
   lng?: number;
+  publicLat?: number;
+  publicLng?: number;
   photo: string;
   caretakerPhone: string;
   caretakerName: string;
   description: string;
   addedDate: string;
+  contactConsentAcknowledgedAt?: string | null;
 }
 
 interface PetRow {
@@ -29,13 +32,14 @@ interface PetRow {
   personality: string | null;
   health: string | null;
   location: string | null;
-  lat: number | null;
-  lng: number | null;
+  public_lat: number | null;
+  public_lng: number | null;
   photo_url: string;
-  caretaker_phone: string;
+  caretaker_phone: string | null;
   caretaker_name: string | null;
   description: string | null;
   created_at: string;
+  contact_consent_acknowledged_at?: string | null;
 }
 
 export const petRowToDog = (r: PetRow): Dog => ({
@@ -48,13 +52,16 @@ export const petRowToDog = (r: PetRow): Dog => ({
   personality: r.personality ?? '',
   health: r.health ?? '',
   location: r.location ?? '',
-  lat: r.lat ?? undefined,
-  lng: r.lng ?? undefined,
+  lat: r.public_lat ?? undefined,
+  lng: r.public_lng ?? undefined,
+  publicLat: r.public_lat ?? undefined,
+  publicLng: r.public_lng ?? undefined,
   photo: r.photo_url,
-  caretakerPhone: r.caretaker_phone,
+  caretakerPhone: r.caretaker_phone ?? '',
   caretakerName: r.caretaker_name ?? '',
   description: r.description ?? '',
   addedDate: r.created_at.slice(0, 10),
+  contactConsentAcknowledgedAt: r.contact_consent_acknowledged_at ?? null,
 });
 
 export const sampleDogs: Dog[] = [

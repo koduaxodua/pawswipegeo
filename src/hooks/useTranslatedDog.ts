@@ -3,21 +3,21 @@ import { useLocale } from '@/contexts/Locale';
 import { translate, isGeorgian, getCachedTranslation } from '@/lib/translate';
 import type { Dog } from '@/data/dogs';
 
-const FIELDS: ReadonlyArray<keyof Dog> = [
-  'name',
+// Only public descriptive pet fields are sent to the translation provider.
+// Do not send contact fields, caretaker names, phone numbers, or exact/manual
+// location strings to third-party translation APIs.
+export const TRANSLATABLE_DOG_FIELDS: ReadonlyArray<keyof Dog> = [
   'age',
   'breed',
   'personality',
   'health',
-  'location',
   'description',
-  'caretakerName',
 ];
 
 /** Synchronously apply any cached translations to a Dog (no network). */
 function applyCached(dog: Dog, target: 'en' | 'ka'): Dog {
   const updates: Record<string, string> = {};
-  for (const field of FIELDS) {
+  for (const field of TRANSLATABLE_DOG_FIELDS) {
     const val = dog[field];
     if (typeof val === 'string' && val) {
       const cached = getCachedTranslation(val, target);
@@ -32,7 +32,7 @@ function applyCached(dog: Dog, target: 'en' | 'ka'): Dog {
 async function translateDog(dog: Dog, target: 'en' | 'ka'): Promise<Dog> {
   const updates: Record<string, string> = {};
   await Promise.all(
-    FIELDS.map(async field => {
+    TRANSLATABLE_DOG_FIELDS.map(async field => {
       const val = dog[field];
       if (typeof val === 'string' && val && isGeorgian(val) === (target === 'en')) {
         const tr = await translate(val, target);

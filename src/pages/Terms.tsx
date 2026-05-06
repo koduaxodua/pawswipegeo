@@ -1,5 +1,7 @@
-import { FileText, Instagram } from 'lucide-react';
+import { FileText, Instagram, Mail } from 'lucide-react';
 import { useLocale } from '@/contexts/Locale';
+
+const SUPPORT_EMAIL = 'kodua.studio@gmail.com';
 
 export default function Terms() {
   const { locale } = useLocale();
@@ -8,137 +10,257 @@ export default function Terms() {
 
 function TermsKa() {
   return (
-    <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
-      <div className="flex items-center gap-2 mb-6 pr-topbar">
-        <FileText className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">წესები და პირობები</h1>
-      </div>
+    <TermsLayout title="წესები და პირობები">
+      <Section title="1. ზოგადი დებულებები">
+        <p>mipove.me არის სოციალური მიზნის მქონე ონლაინ პლატფორმა, რომელიც ეხმარება მომხმარებლებს მიუსაფარი, დაკარგული ან მიკედლებისთვის განკუთვნილი ძაღლებისა და კატების შესახებ ინფორმაციის განთავსებასა და მოძიებაში.</p>
+        <p>პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში. mipove.me არ არის ცხოველთა თავშესაფარი, ვეტერინარული კლინიკა, სახელმწიფო ორგანო, საქველმოქმედო ორგანიზაცია ან ააიპ. პლატფორმა წარმოადგენს ტექნოლოგიურ/საინფორმაციო სივრცეს მომხმარებლებს შორის კომუნიკაციის გასამარტივებლად.</p>
+        <p>პლატფორმის გამოყენებით მომხმარებელი ადასტურებს, რომ ეთანხმება წინამდებარე წესებსა და პირობებს.</p>
+      </Section>
 
-      <div className="space-y-4">
-        <Section title="1. ზოგადი დებულებები">
-          <p>mipove.me არის არაკომერციული პლატფორმა, რომელიც მიზნად ისახავს მიუსაფარი ძაღლებისა და კატებისთვის ახალი სახლის მოძებნას. პლატფორმა მოქმედებს საქართველოს კანონმდებლობის ფარგლებში.</p>
-        </Section>
+      <Section title="2. პლატფორმის მიზანი">
+        <p>mipove.me-ის მიზანია:</p>
+        <Bullets
+          items={[
+            'მიუსაფარი, დაკარგული ან მიკედლებისთვის განკუთვნილი ცხოველების შესახებ ინფორმაციის გაზიარება;',
+            'ცხოველის პოვნის, მიკედლების ან დახმარების პროცესში ადამიანებს შორის კომუნიკაციის გამარტივება;',
+            'ცხოველთა კეთილდღეობის შესახებ ინფორმაციის ხელმისაწვდომობის გაზრდა;',
+            'ცხოველების მიმართ პასუხისმგებლიანი და ჰუმანური დამოკიდებულების წახალისება.',
+          ]}
+        />
+        <p>mipove.me არ იძლევა გარანტიას, რომ პლატფორმაზე განთავსებული ცხოველი აუცილებლად იპოვის მეპატრონეს, მიმკედლებელს ან დახმარებას.</p>
+      </Section>
 
-        <Section title="2. ცხოველთა დაცვის კანონი">
-          <p>საქართველოს კანონი „შინაური ცხოველების შესახებ" (2022) ადგენს ცხოველთა კეთილდღეობის სტანდარტებს. პლატფორმის მომხმარებლები ვალდებულნი არიან:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>არ მიაყენონ ცხოველს ფიზიკური ან ფსიქოლოგიური ზიანი</li>
-            <li>უზრუნველყონ ცხოველის სათანადო მოვლა და კვება</li>
-            <li>დროულად მიმართონ ვეტერინარს საჭიროების შემთხვევაში</li>
-            <li>არ მიატოვონ ან გადააგდონ ცხოველი</li>
-          </ul>
-        </Section>
+      <Section title="3. ცხოველთა კეთილდღეობა">
+        <p>მომხმარებელი ვალდებულია ცხოველთან დაკავშირებული ნებისმიერი ქმედება განახორციელოს ჰუმანურად და საქართველოს კანონმდებლობის შესაბამისად.</p>
+        <p>მომხმარებელს ეკრძალება:</p>
+        <Bullets
+          items={[
+            'ცხოველისთვის ფიზიკური ან ფსიქოლოგიური ზიანის მიყენება;',
+            'ცხოველის მიტოვება, გადაგდება ან არასათანადო პირობებში დატოვება;',
+            'ცრუ ინფორმაციის განთავსება ცხოველის მდგომარეობის, ადგილმდებარეობის ან მეპატრონის შესახებ;',
+            'ცხოველის გაყიდვის ან სხვა კომერციული გარიგების მიზნით განცხადების განთავსება;',
+            'ისეთი კონტენტის ატვირთვა, რომელიც ახალისებს სასტიკ მოპყრობას, ძალადობას ან უკანონო ქმედებას.',
+          ]}
+        />
+        <p>თუ ცხოველს ესაჭიროება გადაუდებელი დახმარება, მომხმარებელი ვალდებულია მიმართოს შესაბამის ვეტერინარულ, მუნიციპალურ ან სხვა კომპეტენტურ სამსახურს. mipove.me არ ანაცვლებს გადაუდებელ ვეტერინარულ ან სახელმწიფო მომსახურებას.</p>
+      </Section>
 
-        <Section title="3. პერსონალური მონაცემები">
-          <p>საქართველოს კანონი „პერსონალურ მონაცემთა დაცვის შესახებ"-ის შესაბამისად:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>საკონტაქტო ინფორმაცია ინახება მხოლოდ მომხმარებლის მოწყობილობაზე (localStorage) ან Supabase-ის უსაფრთხო ბაზაში</li>
-            <li>პლატფორმა მინიმალურად აგროვებს პერსონალურ მონაცემებს — მხოლოდ ცხოველის მიკედლების მიზნით</li>
-            <li>ტელეფონის ნომრები გამოიყენება მხოლოდ ცხოველის მიკედლების მიზნით</li>
-          </ul>
-        </Section>
+      <Section title="4. მომხმარებლის მიერ განთავსებული ინფორმაცია">
+        <p>მომხმარებელი თავად არის პასუხისმგებელი მის მიერ განთავსებული ინფორმაციის სიზუსტეზე, კანონიერებაზე და ეთიკურობაზე.</p>
+        <p>მომხმარებელი ადასტურებს, რომ:</p>
+        <Bullets
+          items={[
+            'მის მიერ ატვირთული ფოტო/ტექსტი არ არღვევს მესამე პირის უფლებებს;',
+            'არ განათავსებს ცრუ, შეცდომაში შემყვან ან მავნე ინფორმაციას;',
+            'არ გამოიყენებს პლატფორმას თაღლითობისთვის, სპამისთვის ან კომერციული გაყიდვებისთვის;',
+            'არ განათავსებს სხვა პირის ტელეფონის ნომერს, მისამართს ან სხვა პერსონალურ მონაცემს მისი თანხმობის გარეშე.',
+          ]}
+        />
+        <p>mipove.me იტოვებს უფლებას, წინასწარი გაფრთხილების გარეშე წაშალოს ან შეზღუდოს ისეთი კონტენტი, რომელიც არღვევს ამ პირობებს, კანონს ან ცხოველთა კეთილდღეობის პრინციპებს.</p>
+      </Section>
 
-        <Section title="4. მომხმარებლის პასუხისმგებლობა">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>მომხმარებელი თავად არის პასუხისმგებელი ატვირთული ინფორმაციის სიზუსტეზე</li>
-            <li>აკრძალულია ცრუ ან შეცდომაში შემყვანი ინფორმაციის განთავსება</li>
-            <li>აკრძალულია ცხოველის კომერციული მიზნით გაყიდვის შეტყობინებების განთავსება</li>
-          </ul>
-        </Section>
+      <Section title="5. პერსონალური მონაცემები">
+        <p>mipove.me ამუშავებს მხოლოდ იმ მონაცემებს, რომლებიც საჭიროა პლატფორმის ფუნქციონირებისთვის, ცხოველის პოვნის/მიკედლების პროცესის გასამარტივებლად, უსაფრთხოებისთვის და მომხმარებელთან კომუნიკაციისთვის.</p>
+        <p>პლატფორმაზე შეიძლება დამუშავდეს შემდეგი მონაცემები:</p>
+        <Bullets
+          items={[
+            'მომხმარებლის მიერ შეყვანილი საკონტაქტო ინფორმაცია;',
+            'ცხოველის შესახებ ატვირთული ფოტოები და აღწერა;',
+            'ცხოველთან დაკავშირებული მდებარეობა, თუ მომხმარებელი თავად მიუთითებს ან მისცემს ბრაუზერს ლოკაციის გამოყენების უფლებას;',
+            'ტექნიკური მონაცემები, როგორიცაა IP მისამართი, მოწყობილობის/ბრაუზერის ტიპი, უსაფრთხოების ლოგები;',
+            'მხარდაჭერის გადახდის შემთხვევაში - გადახდის სტატუსი, თანხა, ვალუტა, ბანკის/გადახდის პროვაიდერის reference და მომხმარებლის მიერ ნებაყოფლობით მითითებული სახელი/მეტსახელი.',
+          ]}
+        />
+        <p>mipove.me არ ინახავს საბანკო ბარათის ნომერს, CVV კოდს, ბარათის ვადას ან სხვა სრულ საგადახდო მონაცემებს. ასეთი მონაცემები მუშავდება მხოლოდ ბანკის ან გადახდის პროვაიდერის დაცულ გვერდზე.</p>
+        <p>პერსონალური მონაცემების დამუშავების დეტალური წესები განთავსებულია კონფიდენციალურობის პოლიტიკაში.</p>
+      </Section>
 
-        <Section title="5. პასუხისმგებლობის შეზღუდვა">
-          <p>mipove.me:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>არ არის პასუხისმგებელი მომხმარებლებს შორის კომუნიკაციის შედეგებზე</li>
-            <li>არ იძლევა გარანტიას ატვირთული ინფორმაციის სიზუსტეზე</li>
-            <li>არ არის შუამავალი ან მხარე ცხოველის მიკედლების პროცესში</li>
-            <li>იტოვებს უფლებას წაშალოს შეუფერებელი კონტენტი</li>
-          </ul>
-        </Section>
+      <Section title="6. ლოკაციისა და უსაფრთხოების წესები">
+        <p>ცხოველის მდებარეობის მითითება გამოიყენება მხოლოდ იმისთვის, რომ ცხოველის პოვნა ან დახმარება გამარტივდეს.</p>
+        <p>მომხმარებელი არ უნდა განათავსოს ისეთი ზუსტი მისამართი ან ინფორმაცია, რომელიც საფრთხეს შეუქმნის საკუთარ, სხვა პირის ან ცხოველის უსაფრთხოებას.</p>
+        <p>mipove.me უფლებას იტოვებს, საჯაროდ ნაჩვენები მდებარეობა უსაფრთხოების მიზნით დააზუსტოს, შეზღუდოს ან ზოგადი სახით აჩვენოს.</p>
+      </Section>
 
-        <Section title="6. ინტელექტუალური საკუთრება">
-          <p>mipove.me-ის დიზაინი, ლოგო და კონტენტი დაცულია საქართველოს საავტორო უფლებების კანონმდებლობით. მომხმარებლების მიერ ატვირთული ფოტოები რჩება მათ საკუთრებაში.</p>
-        </Section>
+      <Section title="7. მხარდაჭერის გადახდები">
+        <p>mipove.me-ზე შეიძლება ხელმისაწვდომი იყოს ნებაყოფლობითი მხარდაჭერის ფუნქცია. ასეთი მხარდაჭერა გამოიყენება ვებ-აპლიკაციის ფუნქციონირების, ტექნიკური ხარჯების, განვითარების და მომსახურების გაუმჯობესების მიზნებისთვის.</p>
+        <p>მხარდაჭერის გადახდა:</p>
+        <Bullets
+          items={[
+            'არის ნებაყოფლობითი;',
+            'არ წარმოადგენს საქველმოქმედო შემოწირულობას იურიდიული გაგებით;',
+            'არ არის საგადასახადო შეღავათის ან დაქვითვის საფუძველი;',
+            'არ არის მიბმული კონკრეტული ცხოველის მკურნალობასთან, გადარჩენასთან ან მოვლასთან;',
+            'არ ქმნის მომხმარებლისთვის დამატებით მომსახურების, საკუთრების ან გადაწყვეტილების მიღების უფლებას.',
+          ]}
+        />
+        <p>პროექტს მართავს საქართველოში რეგისტრირებული ინდივიდუალური მეწარმე. მიღებული თანხები აღირიცხება როგორც პროექტის მხარდაჭერის/სერვისის შემოსავალი და იბეგრება საქართველოს კანონმდებლობის შესაბამისად.</p>
+      </Section>
 
-        <Section title="7. დავების გადაწყვეტა">
-          <p>ნებისმიერი დავა, რომელიც წარმოიშვება პლატფორმის გამოყენებასთან დაკავშირებით, წყდება საქართველოს კანონმდებლობის შესაბამისად, თბილისის საქალაქო სასამართლოში.</p>
-        </Section>
+      <Section title="8. თანხის დაბრუნება">
+        <p>მხარდაჭერის გადახდა, როგორც წესი, არ ექვემდებარება დაბრუნებას.</p>
+        <p>თანხის დაბრუნების მოთხოვნა შეიძლება განიხილოს mipove.me-მ, თუ:</p>
+        <Bullets
+          items={[
+            'თანხა ჩამოიჭრა ორჯერ;',
+            'მოხდა ტექნიკური შეცდომა;',
+            'გადახდა განხორციელდა აშკარა შეცდომით;',
+            'დაბრუნება სავალდებულოა მოქმედი კანონმდებლობით.',
+          ]}
+        />
+        <p>დაბრუნების მოთხოვნისთვის მომხმარებელმა უნდა მოგვწეროს <EmailLink />-ზე და მიუთითოს გადახდის თარიღი, თანხა და ბანკის/გადახდის reference, თუ აქვს.</p>
+      </Section>
 
-        <Footer />
-      </div>
-    </div>
+      <Section title="9. მხარდამჭერების საჯარო სია">
+        <p>თუ მომხმარებელი მხარდაჭერის გადახდისას მონიშნავს შესაბამის თანხმობას, მისი მითითებული სახელი ან მეტსახელი შეიძლება გამოჩნდეს მხარდამჭერების საჯარო სიაში.</p>
+        <p>საჯაროდ არ გამოჩნდება:</p>
+        <Bullets
+          items={[
+            'ტელეფონის ნომერი;',
+            'ელფოსტა;',
+            'საბანკო მონაცემები;',
+            'ბარათის მონაცემები;',
+            'გადახდის პროვაიდერის სრული ტექნიკური ინფორმაცია.',
+          ]}
+        />
+        <p>თუ მომხმარებელი არ მონიშნავს საჯაროდ გამოჩენის თანხმობას, მხარდაჭერა გამოჩნდება როგორც ანონიმური ან საერთოდ არ გამოჩნდება საჯარო სიაში.</p>
+      </Section>
+
+      <Section title="10. პასუხისმგებლობის შეზღუდვა">
+        <p>mipove.me:</p>
+        <Bullets
+          items={[
+            'არ არის პასუხისმგებელი მომხმარებლებს შორის კომუნიკაციის შედეგებზე;',
+            'არ არის მხარე ცხოველის მიკედლების, დაბრუნების ან მოვლის პროცესში;',
+            'არ ადასტურებს ყველა მომხმარებლის იდენტობას;',
+            'არ იძლევა გარანტიას ატვირთული ინფორმაციის სიზუსტეზე;',
+            'არ იძლევა ვეტერინარულ, იურიდიულ ან სახელმწიფო მომსახურებას;',
+            'არ არის პასუხისმგებელი მესამე მხარის, მათ შორის ბანკის, გადახდის პროვაიდერის, რუკის სერვისის, ჰოსტინგის ან ანალიტიკის სისტემის შეფერხებებზე.',
+          ]}
+        />
+        <p>მომხმარებელი თავად იღებს პასუხისმგებლობას სხვა პირთან შეხვედრის, ცხოველის გადაცემის ან ცხოველთან დაკავშირებული ნებისმიერი გადაწყვეტილების უსაფრთხოდ განხორციელებაზე.</p>
+      </Section>
+
+      <Section title="11. აკრძალული ქმედებები">
+        <p>პლატფორმაზე აკრძალულია:</p>
+        <Bullets
+          items={[
+            'ცხოველების გაყიდვა ან ყიდვა;',
+            'ცხოველების გამრავლების/საბაზრო ვაჭრობის მიზნით განცხადებების განთავსება;',
+            'ძალადობრივი, შეურაცხმყოფელი ან მავნე კონტენტის ატვირთვა;',
+            'სხვა პირის პერსონალური მონაცემების უნებართვოდ გამოქვეყნება;',
+            'პლატფორმის გამოყენება სპამისთვის, თაღლითობისთვის ან მავნე ტექნიკური ქმედებებისთვის;',
+            'სისტემის უსაფრთხოების გვერდის ავლა ან პლატფორმის დაზიანების მცდელობა.',
+          ]}
+        />
+      </Section>
+
+      <Section title="12. ინტელექტუალური საკუთრება">
+        <p>mipove.me-ის დიზაინი, ლოგო, ტექსტები, კოდი და სხვა ორიგინალური მასალები დაცულია მოქმედი კანონმდებლობით.</p>
+        <p>მომხმარებლის მიერ ატვირთული ფოტოები და ტექსტები რჩება მომხმარებლის ან შესაბამისი უფლებამოსილი პირის საკუთრებაში. მომხმარებელი mipove.me-ს ანიჭებს უფლებას, ეს მასალა გამოიყენოს პლატფორმის ფუნქციონირებისთვის, ცხოველის პოვნის/მიკედლების მიზნით და შესაბამისი განცხადების ჩვენებისთვის.</p>
+        <p>მომხმარებელი ადასტურებს, რომ აქვს უფლება ატვირთოს შესაბამისი ფოტო ან ტექსტი.</p>
+      </Section>
+
+      <Section title="13. პირობების ცვლილება">
+        <p>mipove.me იტოვებს უფლებას, პერიოდულად შეცვალოს წინამდებარე წესები და პირობები.</p>
+        <p>განახლებული პირობები გამოქვეყნდება პლატფორმაზე. პლატფორმის გამოყენების გაგრძელება განახლებული პირობების გამოქვეყნების შემდეგ ჩაითვლება პირობებზე თანხმობად.</p>
+      </Section>
+
+      <Section title="14. დავების გადაწყვეტა">
+        <p>ნებისმიერი დავა, რომელიც წარმოიშვება პლატფორმის გამოყენებასთან დაკავშირებით, გადაწყდება საქართველოს კანონმდებლობის შესაბამისად.</p>
+        <p>თუ დავის მორიგებით გადაწყვეტა ვერ მოხერხდება, დავა განიხილება თბილისის საქალაქო სასამართლოში, თუ მოქმედი კანონმდებლობით სხვა რამ არ არის სავალდებულო.</p>
+      </Section>
+
+      <Section title="15. საკონტაქტო ინფორმაცია">
+        <p>პლატფორმასთან, მონაცემებთან, კონტენტთან ან გადახდასთან დაკავშირებული კითხვებისთვის დაგვიკავშირდით:</p>
+        <div className="mt-3 space-y-2">
+          <ContactRow icon={<Mail className="h-4 w-4" />} label="ელფოსტა" value={<EmailLink />} />
+          <ContactRow icon={<FileText className="h-4 w-4" />} label="ვებგვერდი" value={<a href="https://mipove.me" className="text-primary hover:underline">https://mipove.me</a>} />
+        </div>
+      </Section>
+
+      <Footer />
+    </TermsLayout>
   );
 }
 
 function TermsEn() {
   return (
+    <TermsLayout title="Terms & Conditions">
+      <Section title="1. General">
+        <p>mipove.me is a social-purpose online platform that helps users publish and find information about homeless, lost, or adoptable dogs and cats. The Georgian version of these Terms is the primary version.</p>
+      </Section>
+
+      <Section title="2. User Responsibility">
+        <p>Users are responsible for the accuracy, legality, and ethical quality of the information they publish. Posting animal-sale listings, misleading information, harmful content, spam, fraud, or third-party personal data without consent is forbidden.</p>
+      </Section>
+
+      <Section title="3. Platform Role">
+        <p>mipove.me is not an animal shelter, veterinary clinic, state authority, charity, or nonprofit. It is a technology/information space intended to simplify communication between users.</p>
+      </Section>
+
+      <Section title="4. Contact">
+        <p>For questions about the platform, data, content, or payments, contact <EmailLink />.</p>
+      </Section>
+
+      <Footer />
+    </TermsLayout>
+  );
+}
+
+function TermsLayout({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
     <div className="min-h-screen pb-20 pt-4 px-4 max-w-lg mx-auto">
       <div className="flex items-center gap-2 mb-6 pr-topbar">
         <FileText className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Terms & Conditions</h1>
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
       </div>
 
-      <div className="space-y-4">
-        <Section title="1. General">
-          <p>mipove.me is a non-commercial platform that helps homeless dogs and cats find new homes. The platform operates within Georgian (country) law.</p>
-        </Section>
-
-        <Section title="2. Animal Welfare Law">
-          <p>The Georgian law "On Domestic Animals" (2022) establishes welfare standards. Platform users must:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>Not cause physical or psychological harm to an animal</li>
-            <li>Provide proper care and feeding</li>
-            <li>See a veterinarian when needed</li>
-            <li>Not abandon or discard an animal</li>
-          </ul>
-        </Section>
-
-        <Section title="3. Personal Data">
-          <p>In accordance with Georgia's Personal Data Protection Law:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>Contact info is stored only on the user's device (localStorage) or in Supabase's secure database</li>
-            <li>The platform collects minimal personal data — only what's needed to facilitate adoption</li>
-            <li>Phone numbers are used solely for adoption purposes</li>
-          </ul>
-        </Section>
-
-        <Section title="4. User Responsibility">
-          <ul className="list-disc pl-5 space-y-1">
-            <li>Users are responsible for the accuracy of uploaded info</li>
-            <li>Posting false or misleading info is forbidden</li>
-            <li>Posting commercial-sale listings of animals is forbidden</li>
-          </ul>
-        </Section>
-
-        <Section title="5. Limitation of Liability">
-          <p>mipove.me:</p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>Is not liable for the outcomes of communication between users</li>
-            <li>Does not guarantee the accuracy of uploaded information</li>
-            <li>Is not a mediator or party to the adoption process</li>
-            <li>Reserves the right to remove inappropriate content</li>
-          </ul>
-        </Section>
-
-        <Section title="6. Intellectual Property">
-          <p>mipove.me's design, logo, and content are protected under Georgian copyright law. Photos uploaded by users remain their property.</p>
-        </Section>
-
-        <Section title="7. Disputes">
-          <p>Any dispute arising from the use of this platform shall be resolved according to Georgian law in the Tbilisi City Court.</p>
-        </Section>
-
-        <Footer />
-      </div>
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="glass rounded-3xl p-4">
+    <section className="glass rounded-3xl p-4">
       <h2 className="font-semibold text-foreground mb-2">{title}</h2>
-      <div className="text-sm text-muted-foreground leading-relaxed">{children}</div>
+      <div className="space-y-3 text-sm text-muted-foreground leading-relaxed">{children}</div>
+    </section>
+  );
+}
+
+function Bullets({ items }: { items: string[] }) {
+  return (
+    <ul className="list-disc pl-5 space-y-1">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function EmailLink() {
+  return (
+    <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
+      {SUPPORT_EMAIL}
+    </a>
+  );
+}
+
+function ContactRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2 text-sm">
+      <span className="text-primary">{icon}</span>
+      <span className="text-muted-foreground/80">{label}:</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -148,7 +270,7 @@ function Footer() {
   return (
     <div className="glass rounded-3xl p-4 text-center space-y-3">
       <p className="text-xs text-muted-foreground">
-        {locale === 'en' ? 'Last updated: April 2026' : 'ბოლო განახლება: 2026 წლის აპრილი'}
+        {locale === 'en' ? 'Last updated: May 2026' : 'ბოლო განახლება: 2026 წლის მაისი'}
       </p>
 
       <div className="space-y-2">
@@ -157,6 +279,13 @@ function Footer() {
         </p>
         <div className="flex flex-col items-center gap-1.5">
           <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            <Mail className="h-4 w-4" />
+            {SUPPORT_EMAIL}
+          </a>
+          <a
             href="https://www.instagram.com/1kodua/"
             target="_blank"
             rel="noopener noreferrer"
@@ -164,6 +293,12 @@ function Footer() {
           >
             <Instagram className="h-4 w-4" />
             @1kodua
+          </a>
+          <a
+            href="/ka/privacy"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+          >
+            კონფიდენციალურობა
           </a>
         </div>
       </div>

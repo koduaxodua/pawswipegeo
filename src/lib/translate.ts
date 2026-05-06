@@ -77,7 +77,9 @@ export async function translate(text: string, target: 'en' | 'ka' = 'en'): Promi
       return translated;
     } catch (err) {
       // On any failure, fall back to original — UI never breaks
-      console.warn('[translate] failed:', err);
+      if (import.meta.env.DEV) {
+        console.warn('[translate] failed');
+      }
       return text;
     } finally {
       inflight.delete(key);

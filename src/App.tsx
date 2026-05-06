@@ -4,9 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
+import { TopLeftBrand } from "@/components/TopLeftBrand";
 import { TopRightLogo } from "@/components/TopRightLogo";
 import { Tutorial } from "@/components/Tutorial";
-import { AdminModeProvider, useAdminMode } from "@/contexts/AdminMode";
+import { CookieConsent } from "@/components/CookieConsent";
 import { LocaleProvider } from "@/contexts/Locale";
 import Index from "./pages/Index";
 import Favorites from "./pages/Favorites";
@@ -14,14 +15,11 @@ import AddDog from "./pages/AddDog";
 import Missions from "./pages/Missions";
 import Terms from "./pages/Terms";
 import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
+import PrivacyKa from "./pages/PrivacyKa";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-function TermsOrAdmin() {
-  const { isAdmin } = useAdminMode();
-  return isAdmin ? <Admin /> : <Terms />;
-}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,19 +28,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AdminModeProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/add" element={<AddDog />} />
             <Route path="/missions" element={<Missions />} />
-            <Route path="/terms" element={<TermsOrAdmin />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/ka/privacy" element={<PrivacyKa />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <BottomNav />
+          <TopLeftBrand />
           <TopRightLogo />
           <Tutorial />
-        </AdminModeProvider>
+          <CookieConsent />
       </BrowserRouter>
     </TooltipProvider>
     </LocaleProvider>

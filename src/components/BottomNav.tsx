@@ -1,6 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Heart, PawPrint, Plus, FileText, Trophy } from 'lucide-react';
-import { useAdminMode } from '@/contexts/AdminMode';
 import { useT, type TKey } from '@/contexts/Locale';
 
 const navItems: { path: string; icon: typeof PawPrint; labelKey: TKey }[] = [
@@ -15,7 +14,6 @@ export function BottomNav() {
   const t = useT();
   const location = useLocation();
   const navigate = useNavigate();
-  const { registerTermsTap } = useAdminMode();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 glass-strong border-t border-border/50 safe-area-bottom">
@@ -23,9 +21,6 @@ export function BottomNav() {
         {navItems.map(item => {
           const isActive = location.pathname === item.path;
           const handleClick = () => {
-            if (item.path === '/terms') {
-              registerTermsTap();
-            }
             navigate(item.path);
           };
           return (

@@ -2,10 +2,11 @@ import { useState, useRef } from 'react';
 import exifr from 'exifr';
 import { useDogs } from '@/hooks/useDogs';
 import { toast } from '@/hooks/use-toast';
-import { Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
+import { CheckCircle2, Plus, PawPrint, Upload, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LocationPicker } from '@/components/LocationPicker';
 import { useT, useLocale } from '@/contexts/Locale';
+import { AdaptivePetPhoto } from '@/components/AdaptivePetPhoto';
 
 const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -50,17 +51,17 @@ async function extractPhotoGps(file: File): Promise<{ lat: number; lng: number }
   try {
     const gps = await exifr.gps(file);
     if (gps && Number.isFinite(gps.latitude) && Number.isFinite(gps.longitude)) {
-      console.log('[exif] strategy=gps()', gps);
       return { lat: gps.latitude, lng: gps.longitude };
     }
   } catch (err) {
-    console.warn('[exif] gps() threw', err);
+    if (import.meta.env.DEV) {
+      console.warn('[exif] gps() failed');
+    }
   }
 
   // Strategy 2 + 3: full parse, then either pre-converted lat/lng or raw DMS fallback
   try {
     const data: any = await exifr.parse(file, { gps: true });
-    console.log('[exif] strategy=parse() raw:', data);
     if (data && Number.isFinite(data.latitude) && Number.isFinite(data.longitude)) {
       return { lat: data.latitude, lng: data.longitude };
     }
@@ -74,15 +75,15 @@ async function extractPhotoGps(file: File): Promise<{ lat: number; lng: number }
       const lat = toDecimal(data.GPSLatitude, data.GPSLatitudeRef);
       const lng = toDecimal(data.GPSLongitude, data.GPSLongitudeRef);
       if (Number.isFinite(lat) && Number.isFinite(lng)) {
-        console.log('[exif] strategy=DMS', { lat, lng });
         return { lat, lng };
       }
     }
   } catch (err) {
-    console.warn('[exif] parse() threw', err);
+    if (import.meta.env.DEV) {
+      console.warn('[exif] parse failed');
+    }
   }
 
-  console.log('[exif] no GPS found');
   return null;
 }
 
@@ -115,6 +116,18 @@ async function reverseLabel(lat: number, lng: number, lang: string): Promise<str
   return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 }
 
+function toCoarseLocationLabel(label: string, locale: string): string {
+  const parts = label.split(',').map(part => part.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    const first = parts[0];
+    const last = parts[parts.length - 1];
+    if (/\d/.test(first)) return last;
+    return first.toLowerCase() === last.toLowerCase() ? first : `${first}, ${last}`;
+  }
+  return label.replace(/\s+\d+[\w/-]*/g, '').trim()
+    || (locale === 'en' ? 'Approximate location selected' : 'მიახლოებითი მდებარეობა არჩეულია');
+}
+
 export default function AddDog() {
   const t = useT();
   const { locale } = useLocale();
@@ -122,6 +135,7 @@ export default function AddDog() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [showConsentError, setShowConsentError] = useState(false);
   const [photoExifLocation, setPhotoExifLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({
     name: '',
@@ -137,9 +151,10 @@ export default function AddDog() {
     caretakerPhone: '',
     caretakerName: '',
     description: '',
+    contactConsent: false,
   });
 
-  const update = (key: string, value: string) =>
+  const update = (key: string, value: string | boolean) =>
     setForm(prev => ({ ...prev, [key]: value }));
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,13 +174,15 @@ export default function AddDog() {
       const [compressed, gps] = await Promise.all([compressImage(file), extractPhotoGps(file)]);
 
       const sizeKB = Math.round((compressed.length * 3) / 4 / 1024);
-      console.log('[upload]', { type: file.type, sizeKB, hasGps: !!gps });
 
       if (gps) {
         // Auto-fill the location from photo EXIF — overrides whatever the user
         // had set previously. Reverse-geocode in the background for a label.
         const { lat, lng } = gps;
-        const label = await reverseLabel(lat, lng, locale === 'en' ? 'en,ka' : 'ka,en');
+        const label = toCoarseLocationLabel(
+          await reverseLabel(lat, lng, locale === 'en' ? 'en,ka' : 'ka,en'),
+          locale
+        );
         setForm(prev => ({ ...prev, photo: compressed, lat, lng, location: label }));
         setPhotoExifLocation({ lat, lng });
         toast({
@@ -198,13 +215,29 @@ export default function AddDog() {
   const [submitting, setSubmitting] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.photo || !form.caretakerPhone || !form.location) {
+    if (!form.name || !form.photo || !form.location) {
       toast({ title: t('addDog.toast.requiredFields'), variant: 'destructive' });
       return;
     }
+    if (!form.contactConsent) {
+      setShowConsentError(true);
+      toast({
+        title:
+          locale === 'en'
+            ? 'Please confirm you have permission to publish the contact information.'
+            : 'გთხოვთ დაადასტუროთ, რომ საკონტაქტო ინფორმაციის გამოქვეყნების უფლება გაქვთ.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setShowConsentError(false);
     setSubmitting(true);
     try {
-      await addDog(form);
+      const { contactConsent, ...petPayload } = form;
+      await addDog({
+        ...petPayload,
+        contactConsentAcknowledgedAt: new Date().toISOString(),
+      });
       toast({ title: t('addDog.toast.success', { name: form.name }) });
       navigate('/');
     } catch (err) {
@@ -235,7 +268,7 @@ export default function AddDog() {
           />
           {form.photo ? (
             <div className="relative">
-              <img src={form.photo} alt="preview" className="w-full h-48 sm:h-64 object-cover rounded-2xl" />
+              <AdaptivePetPhoto src={form.photo} alt="preview" mode="preview" />
               <button
                 type="button"
                 onClick={() => { update('photo', ''); if (fileInputRef.current) fileInputRef.current.value = ''; }}
@@ -312,8 +345,66 @@ export default function AddDog() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField label={t('addDog.field.caretakerName')} value={form.caretakerName} onChange={v => update('caretakerName', v)} placeholder={t('addDog.field.caretakerNamePh')} />
-          <FormField label={t('addDog.field.phone')} value={form.caretakerPhone} onChange={v => update('caretakerPhone', v)} placeholder={t('addDog.field.phonePh')} />
+          <div className="glass rounded-2xl p-4">
+            <label className="block text-sm font-medium text-primary-foreground mb-2">
+              {locale === 'en' ? 'Contact phone' : 'საკონტაქტო ნომერი'}
+            </label>
+            <input
+              value={form.caretakerPhone}
+              onChange={e => update('caretakerPhone', e.target.value)}
+              placeholder={t('addDog.field.phonePh')}
+              className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none"
+            />
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              {locale === 'en'
+                ? 'The number will be shown publicly on the pet profile.'
+                : 'ნომერი საჯაროდ გამოჩნდება ცხოველის პროფილზე.'}
+            </p>
+          </div>
         </div>
+
+        <button
+          type="button"
+          aria-pressed={form.contactConsent}
+          onClick={() => {
+            const next = !form.contactConsent;
+            update('contactConsent', next);
+            if (next) setShowConsentError(false);
+          }}
+          className={`glass w-full rounded-2xl p-4 text-left transition active:scale-[0.99] ${
+            form.contactConsent
+              ? 'ring-2 ring-primary/60'
+              : showConsentError
+                ? 'ring-2 ring-destructive/70'
+                : 'hover:ring-1 hover:ring-primary/35'
+          }`}
+        >
+          <span className="flex items-center gap-4">
+            <span
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full border transition ${
+                form.contactConsent
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : showConsentError
+                    ? 'border-destructive/80 bg-destructive/10 text-destructive'
+                    : 'border-border bg-secondary/80 text-muted-foreground'
+              }`}
+            >
+              <CheckCircle2 className="h-6 w-6" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold leading-snug text-primary-foreground">
+                {locale === 'en'
+                  ? 'I agree and confirm that the contact information is mine or I have permission to publish it.'
+                  : 'ვეთანხმები და ვადასტურებ, რომ საკონტაქტო ინფორმაცია ჩემია ან მაქვს მისი გამოქვეყნების უფლება.'}
+              </span>
+              <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">
+                {locale === 'en'
+                  ? 'Required before publishing a public pet profile.'
+                  : 'აუცილებელია ცხოველის საჯარო პროფილის გამოსაქვეყნებლად.'}
+              </span>
+            </span>
+          </span>
+        </button>
 
         <button
           type="submit"

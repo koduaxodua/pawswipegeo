@@ -35,17 +35,11 @@ interface NominatimResult {
 
 function buildShortLabel(r: { display_name: string; address?: NominatimAddress }): string {
   const a = r.address ?? {};
-  const street = a.road || a.pedestrian || a.residential || a.street || a.path;
-  const num = a.house_number;
-  let line: string;
-  if (street && num) line = `${street} ${num}`;
-  else if (street) line = street;
-  else line = a.neighbourhood || a.quarter || a.suburb || a.city_district || '';
-
+  const line = a.neighbourhood || a.quarter || a.suburb || a.city_district || '';
   const area = a.city || a.town || a.village || a.hamlet;
   const parts = [line, area].filter(Boolean);
   if (parts.length) return parts.join(', ');
-  return r.display_name.split(',').slice(0, 2).join(',').trim();
+  return r.display_name.split(',').slice(-2).join(',').trim();
 }
 
 const ACCURACY_TARGET_M = 30;

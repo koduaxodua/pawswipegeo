@@ -8,12 +8,14 @@ import { haversineKm, formatDistance } from '@/lib/geo';
 import { useT } from '@/contexts/Locale';
 import { useTranslatedDogs, useTranslatedDog } from '@/hooks/useTranslatedDog';
 import { MapPin, Crosshair } from 'lucide-react';
+import { AdaptivePetPhoto } from '@/components/AdaptivePetPhoto';
 
 interface MapSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentDog: Dog | null;
   allDogs: Dog[];
+  focusedDogId?: string | null;
   onSelectDog?: (dog: Dog) => void;
 }
 
@@ -38,7 +40,7 @@ const userStyle: L.PathOptions & { radius: number } = {
   opacity: 1,
 };
 
-export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: rawAll, onSelectDog }: MapSheetProps) {
+export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: rawAll, focusedDogId, onSelectDog }: MapSheetProps) {
   const t = useT();
   const allDogs = useTranslatedDogs(rawAll);
   const currentDog = useTranslatedDog(rawCurrent);
@@ -71,6 +73,12 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
       setSelectedId(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (open && focusedDogId) {
+      setSelectedId(focusedDogId);
+    }
+  }, [open, focusedDogId]);
 
   // Init map via callback ref — fires when DOM node mounts
   const setContainer = useCallback((node: HTMLDivElement | null) => {
@@ -130,7 +138,9 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
         m.on('click', () => setSelectedId(dog.id));
         markersRef.current.set(dog.id, m);
       } catch (err) {
-        console.warn('[MapSheet] failed to add marker for', dog.id, err);
+        if (import.meta.env.DEV) {
+          console.warn('[MapSheet] failed to add marker');
+        }
       }
     });
 
@@ -152,7 +162,9 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
         marker.setStyle(dotStyle(state));
         if (state === 'selected') marker.bringToFront();
       } catch (err) {
-        console.warn('[MapSheet] setStyle failed', err);
+        if (import.meta.env.DEV) {
+          console.warn('[MapSheet] setStyle failed');
+        }
       }
     });
   }, [map, selectedId, currentDog]);
@@ -167,7 +179,9 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
         userMarkerRef.current = L.circleMarker(userLocation, userStyle).addTo(map);
         userMarkerRef.current.bindTooltip('თქვენ', { direction: 'top', offset: [0, -10] });
       } catch (err) {
-        console.warn('[MapSheet] user marker failed', err);
+        if (import.meta.env.DEV) {
+          console.warn('[MapSheet] user marker failed');
+        }
       }
     }
   }, [map, userLocation]);
@@ -258,7 +272,7 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
                 onClick={() => onSelectDog?.(dog)}
                 className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[1000] glass-strong rounded-2xl p-2.5 pr-4 flex items-center gap-3 shadow-2xl active:scale-[0.98] transition max-w-[88%]"
               >
-                <img src={dog.photo} alt={dog.name} className="h-12 w-12 rounded-xl object-cover flex-shrink-0" />
+                <AdaptivePetPhoto src={dog.photo} alt={dog.name} mode="mini" />
                 <div className="text-left min-w-0">
                   <div className="font-semibold text-foreground truncate">{dog.name}, {dog.age}</div>
                   <div className="text-xs text-muted-foreground truncate">{dog.location}</div>
@@ -291,11 +305,7 @@ export function MapSheet({ open, onOpenChange, currentDog: rawCurrent, allDogs: 
                       : 'border-transparent hover:bg-secondary/40'
                   }`}
                 >
-                  <img
-                    src={dog.photo}
-                    alt={dog.name}
-                    className="h-12 w-12 rounded-lg object-cover flex-shrink-0"
-                  />
+                  <AdaptivePetPhoto src={dog.photo} alt={dog.name} mode="mini" className="rounded-lg" />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm text-foreground truncate">
                       {isCurrent && '⭐ '}{dog.name}, {dog.age}

@@ -1,18 +1,21 @@
-import { useRef } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { animate, motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import type { Dog } from '@/data/dogs';
 import { MapPin, Info } from 'lucide-react';
 import { useT } from '@/contexts/Locale';
 import { useTranslatedDog } from '@/hooks/useTranslatedDog';
+import { AdaptivePetPhoto } from '@/components/AdaptivePetPhoto';
 
 interface SwipeCardProps {
   dog: Dog;
   onSwipe: (direction: 'left' | 'right') => void;
   onTap?: () => void;
   isTop: boolean;
+  exitDirection?: 'left' | 'right';
+  activeSwipeDirection?: 'left' | 'right' | null;
 }
 
-export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop }: SwipeCardProps) {
+export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop, exitDirection = 'right', activeSwipeDirection }: SwipeCardProps) {
   const t = useT();
   const dog = useTranslatedDog(rawDog) ?? rawDog;
   const dragRef = useRef(false);
@@ -20,6 +23,15 @@ export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop }: SwipeCardProps
   const rotate = useTransform(x, [-200, 200], [-15, 15]);
   const likeOpacity = useTransform(x, [0, 100], [0, 1]);
   const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
+
+  useEffect(() => {
+    if (!isTop || !activeSwipeDirection) return;
+    const controls = animate(x, activeSwipeDirection === 'left' ? -180 : 180, {
+      duration: 0.22,
+      ease: 'easeOut',
+    });
+    return () => controls.stop();
+  }, [activeSwipeDirection, isTop, x]);
 
   const handleDragStart = () => {
     dragRef.current = false;
@@ -47,23 +59,30 @@ export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop }: SwipeCardProps
 
   return (
     <motion.div
-      className="absolute inset-0 cursor-grab active:cursor-grabbing"
+      className="absolute inset-0 cursor-grab select-none touch-none active:cursor-grabbing"
       style={{ x, rotate, zIndex: isTop ? 10 : 0 }}
       drag={isTop ? 'x' : false}
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.9}
+      dragMomentum={false}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
-      exit={{ x: 300, opacity: 0, transition: { duration: 0.3 } }}
+      onDragStartCapture={(e) => e.preventDefault()}
+      exit={{
+        x: exitDirection === 'left' ? -420 : 420,
+        rotate: exitDirection === 'left' ? -18 : 18,
+        opacity: 0,
+        transition: { duration: 0.32, ease: 'easeOut' },
+      }}
       onClick={handleClick}
     >
       <div className="relative h-full w-full overflow-hidden rounded-3xl glass-strong shadow-xl">
-        <img
+        <AdaptivePetPhoto
           src={dog.photo}
           alt={dog.name}
-          className="h-full w-full object-cover"
-          draggable={false}
+          mode="card"
+          imageClassName="pointer-events-none"
         />
 
         {/* Gradient overlay */}

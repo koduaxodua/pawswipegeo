@@ -63,7 +63,10 @@ export function parseCoordinates(input: string): { lat: number; lng: number } | 
   return null;
 }
 
-export function getDogCoords(dog: { lat?: number; lng?: number; location: string }): [number, number] {
+export function getDogCoords(dog: { publicLat?: number; publicLng?: number; lat?: number; lng?: number; location: string }): [number, number] {
+  if (typeof dog.publicLat === 'number' && typeof dog.publicLng === 'number') {
+    return [dog.publicLat, dog.publicLng];
+  }
   if (typeof dog.lat === 'number' && typeof dog.lng === 'number') {
     return [dog.lat, dog.lng];
   }

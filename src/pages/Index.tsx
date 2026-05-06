@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
@@ -12,6 +12,14 @@ import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
 const AD_FREQUENCY = 5;
+const SHEET_SWITCH_DELAY_MS = 320;
+const PROGRAMMATIC_SWIPE_MS = 220;
+
+function isTextEditingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tagName = target.tagName.toLowerCase();
+  return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+}
 
 export default function Index() {
   const t = useT();
@@ -21,6 +29,9 @@ export default function Index() {
   const [swipeCount, setSwipeCount] = useState(0);
   const [showAd, setShowAd] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
+  const [mapFocusDogId, setMapFocusDogId] = useState<string | null>(null);
+  const [swipeExitDirection, setSwipeExitDirection] = useState<'left' | 'right'>('right');
+  const [activeSwipeDirection, setActiveSwipeDirection] = useState<'left' | 'right' | null>(null);
 
   const availableDogs = dogs.filter(
     d =>
@@ -34,6 +45,7 @@ export default function Index() {
   const handleSwipe = useCallback(
     (direction: 'left' | 'right') => {
       if (!currentDog) return;
+      setSwipeExitDirection(direction);
       if (direction === 'right') {
         likeDog(currentDog);
         toast({ title: t('index.toast.liked', { name: currentDog.name }) });
@@ -56,15 +68,72 @@ export default function Index() {
     toast({ title: t('index.toast.reset') });
   };
 
+  const runAnimatedSwipe = useCallback(
+    (direction: 'left' | 'right') => {
+      if (!currentDog || showAd || activeSwipeDirection) return;
+      setSwipeExitDirection(direction);
+      setActiveSwipeDirection(direction);
+      window.setTimeout(() => {
+        handleSwipe(direction);
+        setActiveSwipeDirection(null);
+      }, PROGRAMMATIC_SWIPE_MS);
+    },
+    [activeSwipeDirection, currentDog, handleSwipe, showAd]
+  );
+
+  const openMap = () => {
+    setMapFocusDogId(null);
+    setMapOpen(true);
+  };
+
+  const handleMapOpenChange = (open: boolean) => {
+    setMapOpen(open);
+    if (!open) setMapFocusDogId(null);
+  };
+
+  const handleShowDogOnMap = (dog: Dog) => {
+    setSelectedDog(null);
+    setMapFocusDogId(dog.id);
+    setTimeout(() => setMapOpen(true), SHEET_SWITCH_DELAY_MS);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.repeat || isTextEditingTarget(event.target)) return;
+
+      if (event.key === 'ArrowDown' && selectedDog) {
+        event.preventDefault();
+        setSelectedDog(null);
+        return;
+      }
+
+      if (selectedDog || mapOpen || showAd) return;
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        runAnimatedSwipe('left');
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        runAnimatedSwipe('right');
+      } else if (event.key === 'ArrowUp' && currentDog) {
+        event.preventDefault();
+        setSelectedDog(currentDog);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentDog, mapOpen, runAnimatedSwipe, selectedDog, showAd]);
+
   const allSwiped = availableDogs.length === 0;
 
   return (
     <div className="flex flex-col items-center h-[100dvh] px-4 pt-6 pb-safe-nav safe-area-top overflow-hidden">
       {/* Header — title on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
       <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-topbar">
-        <div className="flex flex-col leading-tight min-w-0">
+        <div className="flex min-w-0 -translate-x-1 translate-y-5 flex-col leading-tight sm:translate-y-4">
           <span className="text-base sm:text-lg font-bold text-foreground truncate">{t('app.title')}</span>
-          <span className="text-[10px] sm:text-[11px] text-muted-foreground truncate">{t('app.tagline')}</span>
+          <span className="whitespace-nowrap text-[9px] text-muted-foreground sm:text-[11px]">{t('app.tagline')}</span>
         </div>
       </div>
 
@@ -92,7 +161,7 @@ export default function Index() {
                 </button>
               )}
               <button
-                onClick={() => setMapOpen(true)}
+                onClick={openMap}
                 className="glass inline-flex items-center gap-2 px-5 py-3 rounded-full bg-primary/10 hover:scale-105 active:scale-95 transition-transform"
                 aria-label={t('index.action.map')}
               >
@@ -121,6 +190,8 @@ export default function Index() {
                       onSwipe={handleSwipe}
                       onTap={() => setSelectedDog(currentDog)}
                       isTop={true}
+                      exitDirection={swipeExitDirection}
+                      activeSwipeDirection={activeSwipeDirection}
                     />
                   )}
                 </>
@@ -131,8 +202,8 @@ export default function Index() {
           {/* Action buttons + Map button row — always visible. Asymmetry is intentional (Tinder-style emphasis on Like). */}
           <div className="flex items-center gap-4 flex-shrink-0">
             <button
-              onClick={() => handleSwipe('left')}
-              disabled={showAd}
+              onClick={() => runAnimatedSwipe('left')}
+              disabled={showAd || !!activeSwipeDirection}
               className="glass h-[52px] w-[52px] rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label={t('index.action.skip')}
             >
@@ -140,7 +211,7 @@ export default function Index() {
             </button>
 
             <button
-              onClick={() => setMapOpen(true)}
+              onClick={openMap}
               className="glass inline-flex items-center gap-1.5 h-[52px] px-4 rounded-full bg-primary/10 hover:scale-105 active:scale-95 transition-transform"
               aria-label={t('index.action.map')}
             >
@@ -149,8 +220,8 @@ export default function Index() {
             </button>
 
             <button
-              onClick={() => handleSwipe('right')}
-              disabled={showAd}
+              onClick={() => runAnimatedSwipe('right')}
+              disabled={showAd || !!activeSwipeDirection}
               className="glass h-[60px] w-[60px] rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label={t('index.action.like')}
             >
@@ -165,14 +236,16 @@ export default function Index() {
           dog={selectedDog}
           open={!!selectedDog}
           onOpenChange={open => !open && setSelectedDog(null)}
+          onShowOnMap={handleShowDogOnMap}
         />
       )}
 
       <MapSheet
         open={mapOpen}
-        onOpenChange={setMapOpen}
+        onOpenChange={handleMapOpenChange}
         currentDog={currentDog ?? null}
         allDogs={dogs}
+        focusedDogId={mapFocusDogId}
         onSelectDog={(dog) => {
           // Close map sheet first; wait for Radix close animation (~250ms) +
           // safety margin before opening the next sheet, otherwise body's

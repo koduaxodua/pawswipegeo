@@ -35,7 +35,9 @@ export async function ensureAnonAuth(): Promise<string | null> {
 
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) {
-      console.error('[supabase] anon sign-in failed:', error.message);
+      if (import.meta.env.DEV) {
+        console.error('[supabase] anon sign-in failed');
+      }
       anonAuthPromise = null;
       return null;
     }

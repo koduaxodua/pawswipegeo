@@ -6,6 +6,12 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
+  "crons": [
+    {
+      "path": "/api/cron/delete-hidden-pets",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/brand/(.*)",
