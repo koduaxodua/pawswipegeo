@@ -62,7 +62,7 @@ export function useT() {
 const TRANSLATIONS = {
   // App
   'app.title':              { ka: 'mipove.me', en: 'mipove.me' },
-  'app.tagline':            { ka: 'მიუსაფარი ცხოველების გადარჩენისთვის', en: 'Rescuing homeless pets' },
+  'app.tagline':            { ka: 'იპოვე და გადაარჩინე მიუსაფარი ცხოველი', en: 'Swipe to help a homeless pet' },
 
   // Navigation
   'nav.swipe':              { ka: 'სვაიპი', en: 'Swipe' },
@@ -73,14 +73,16 @@ const TRANSLATIONS = {
 
   // Index page
   'index.allSwiped.title':  { ka: 'ყველა ცხოველი ნანახია!', en: "You've seen them all!" },
-  'index.allSwiped.stats':  { ka: '❤️ მოწონებული: {liked} · ✕ გამოტოვებული: {disliked}', en: '❤️ Liked: {liked} · ✕ Skipped: {disliked}' },
-  'index.allSwiped.hint':   { ka: 'შეგიძლია გამოტოვებულები დააბრუნო ან ახალი ცხოველი დაამატო', en: 'You can bring back skipped pets or add a new one' },
+  'index.allSwiped.stats':  { ka: '❤️ მოწონებული: {liked} · ✕ გამოტოვებული: {disliked}', en: '❤️ Saved: {liked} · ✕ Skipped: {disliked}' },
+  'index.allSwiped.hint':   { ka: 'დააბრუნე გამოტოვებულები ან დაამატე ახალი ცხოველი, რომ სხვებსაც დაეხმარო.', en: 'Bring back skipped pets or add a new one to keep helping.' },
   'index.resetDisliked':    { ka: 'გამოტოვებულების დაბრუნება', en: 'Bring back skipped' },
   'index.action.skip':      { ka: 'გამოტოვება', en: 'Skip' },
   'index.action.like':      { ka: 'მოწონება', en: 'Like' },
   'index.action.map':       { ka: 'რუკა', en: 'Map' },
   'index.toast.liked':      { ka: '{name} მოწონებულია! ❤️', en: '{name} liked! ❤️' },
   'index.toast.reset':      { ka: 'გამოტოვებული ცხოველები დაბრუნდა 🔄', en: 'Skipped pets restored 🔄' },
+  'index.loading.title':    { ka: 'ცხოველების სია იტვირთება…', en: 'Loading pets…' },
+  'index.loading.sub':      { ka: 'ცოტაც და შეგიძლია სვაიპი დაიწყო.', en: 'Just a moment and you can start swiping.' },
 
   // Swipe card
   'card.like':              { ka: 'მომწონს ❤️', en: 'LIKE ❤️' },
@@ -91,8 +93,8 @@ const TRANSLATIONS = {
   'favorites.title':        { ka: 'ჩემი არჩევანი', en: 'My picks' },
   'favorites.tab.liked':    { ka: 'მოწონებული ({n})', en: 'Liked ({n})' },
   'favorites.tab.disliked': { ka: 'გამოტოვებული ({n})', en: 'Skipped ({n})' },
-  'favorites.empty.liked.title':    { ka: 'ჯერ არაფერი მოგწონებია', en: 'No likes yet' },
-  'favorites.empty.liked.sub':      { ka: 'სვაიპე მარჯვნივ ან დააჭირე ❤️, რომ მოიწონო ცხოველი', en: 'Swipe right or tap ❤️ to like a pet' },
+  'favorites.empty.liked.title':    { ka: 'ჯერ არცერთი ცხოველი არ აგირჩევია', en: 'No saved pets yet' },
+  'favorites.empty.liked.sub':      { ka: 'სვაიპე მარჯვნივ ან დააჭირე ❤️ — ასე მარტივად შეგიძლია დახმარება.', en: 'Swipe right or tap ❤️ to save a pet for later.' },
   'favorites.empty.disliked.title': { ka: 'არცერთი ცხოველი არ გამოგიტოვებია', en: "You haven't skipped any" },
   'favorites.empty.disliked.sub':   { ka: 'აქ აისახება ის ცხოველები, რომლებსაც მარცხნივ სვაიპავ', en: 'Pets you swipe left will appear here' },
   'favorites.move.toDisliked':      { ka: 'გადატანა გამოტოვებულებში', en: 'Move to skipped' },
@@ -127,7 +129,7 @@ const TRANSLATIONS = {
   'addDog.submit':          { ka: 'ცხოველის დამატება', en: 'Add the pet' },
   'addDog.submitting':      { ka: 'იტვირთება...', en: 'Uploading...' },
   'addDog.toast.success':   { ka: '{name} წარმატებით დაემატა! 🐾', en: '{name} added successfully! 🐾' },
-  'addDog.toast.requiredFields': { ka: 'გთხოვთ შეავსოთ სავალდებულო ველები და აირჩიოთ ლოკაცია რუკაზე', en: 'Please fill required fields and pick a location on the map' },
+  'addDog.toast.requiredFields': { ka: 'გთხოვთ შეავსოთ სავალდებულო ველები, ატვირთოთ ფოტო და მონიშნოთ ლოკაცია.', en: 'Please complete required fields, upload a photo, and choose a location.' },
   'addDog.toast.notImage':  { ka: 'გთხოვთ აირჩიოთ სურათი', en: 'Please select an image' },
   'addDog.toast.tooBig':    { ka: 'სურათი ძალიან დიდია (მაქს. 10MB)', en: 'Image too large (max 10MB)' },
   'addDog.toast.uploaded':  { ka: 'ფოტო ატვირთულია ({size}KB) ✓', en: 'Photo uploaded ({size}KB) ✓' },
@@ -218,6 +220,9 @@ const TRANSLATIONS = {
   'common.close':           { ka: 'დახურვა', en: 'Close' },
   'common.loading':         { ka: 'იტვირთება...', en: 'Loading...' },
   'common.error':           { ka: 'შეცდომა', en: 'Error' },
+  'footer.copyright':       { ka: '© 2026 PawswipeGeo. ყველა უფლება დაცულია.', en: '© 2026 PawswipeGeo. All rights reserved.' },
+  'footer.terms':           { ka: 'პირობები', en: 'Terms' },
+  'footer.privacy':         { ka: 'კონფიდენციალურობა', en: 'Privacy' },
 
   // Ad banner
   'ad.skipIn':              { ka: 'რეკლამა · გამოტოვება {seconds} წმ-ში', en: 'Ad · skip in {seconds}s' },

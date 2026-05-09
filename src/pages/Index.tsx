@@ -4,6 +4,7 @@ import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { AdBanner } from '@/components/AdBanner';
 import { MapSheet } from '@/components/MapSheet';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
 import { Heart, X, RotateCcw, Map } from 'lucide-react';
@@ -23,7 +24,7 @@ function isTextEditingTarget(target: EventTarget | null): boolean {
 
 export default function Index() {
   const t = useT();
-  const { dogs } = useDogs();
+  const { dogs, loading } = useDogs();
   const { likedDogs, dislikedDogs, likeDog, dislikeDog, resetDisliked } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
   const [swipeCount, setSwipeCount] = useState(0);
@@ -126,9 +127,10 @@ export default function Index() {
   }, [currentDog, mapOpen, runAnimatedSwipe, selectedDog, showAd]);
 
   const allSwiped = availableDogs.length === 0;
+  const isLoading = loading && dogs.length === 0;
 
   return (
-    <div className="flex flex-col items-center h-[100dvh] px-4 pt-6 pb-safe-nav safe-area-top overflow-hidden">
+    <div className="flex h-[100dvh] flex-col items-center overflow-hidden px-4 pb-safe-nav pt-6 safe-area-top">
       {/* Header — title on left, right side cleared for the global TopRightLogo (KODUA + lang toggle) */}
       <div className="flex items-center justify-start w-full max-w-sm sm:max-w-md lg:max-w-lg flex-shrink-0 pr-topbar">
         <div className="flex min-w-0 -translate-x-1 translate-y-5 flex-col leading-tight sm:translate-y-4">
@@ -137,7 +139,22 @@ export default function Index() {
         </div>
       </div>
 
-      {allSwiped ? (
+      {isLoading ? (
+        <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-center gap-4 py-2">
+          <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
+            <Skeleton className="h-[52vh] max-h-[420px] w-full rounded-3xl" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-[52px] w-[52px] rounded-full" />
+            <Skeleton className="h-[52px] w-28 rounded-full" />
+            <Skeleton className="h-[60px] w-[60px] rounded-full" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">{t('index.loading.title')}</p>
+            <p className="text-xs text-muted-foreground">{t('index.loading.sub')}</p>
+          </div>
+        </div>
+      ) : allSwiped ? (
         <div className="flex-1 flex flex-col items-center justify-center w-full gap-4">
           <div className="flex flex-col items-center justify-center glass rounded-3xl p-6 text-center max-w-sm sm:max-w-md">
             <span className="text-6xl mb-4">🐾</span>
@@ -204,7 +221,7 @@ export default function Index() {
             <button
               onClick={() => runAnimatedSwipe('left')}
               disabled={showAd || !!activeSwipeDirection}
-              className="glass h-[52px] w-[52px] rounded-full flex items-center justify-center text-destructive hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass flex h-[52px] w-[52px] items-center justify-center rounded-full text-destructive transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label={t('index.action.skip')}
             >
               <X className="h-6 w-6" />
@@ -212,7 +229,7 @@ export default function Index() {
 
             <button
               onClick={openMap}
-              className="glass inline-flex items-center gap-1.5 h-[52px] px-4 rounded-full bg-primary/10 hover:scale-105 active:scale-95 transition-transform"
+              className="glass inline-flex h-[52px] items-center gap-1.5 rounded-full bg-primary/10 px-4 transition-transform hover:scale-105 active:scale-95"
               aria-label={t('index.action.map')}
             >
               <Map className="h-4 w-4 text-primary" />
@@ -222,7 +239,7 @@ export default function Index() {
             <button
               onClick={() => runAnimatedSwipe('right')}
               disabled={showAd || !!activeSwipeDirection}
-              className="glass h-[60px] w-[60px] rounded-full flex items-center justify-center text-accent hover:scale-110 transition-transform active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="glass flex h-[60px] w-[60px] items-center justify-center rounded-full text-accent transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label={t('index.action.like')}
             >
               <Heart className="h-7 w-7" fill="currentColor" />
