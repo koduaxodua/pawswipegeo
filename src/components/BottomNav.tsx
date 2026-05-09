@@ -42,7 +42,7 @@ export function BottomNav() {
               key={item.path}
               onClick={handleClick}
               aria-current={isActive ? 'page' : undefined}
-              className={`min-h-11 min-w-11 flex flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-all duration-200 ${
+              className={`min-h-11 min-w-11 flex flex-col items-center justify-center gap-0.5 rounded-xl transition-all duration-200 ${
                 isActive
                   ? 'text-primary scale-110'
                   : 'text-foreground/60 hover:text-foreground'
