@@ -136,6 +136,7 @@ export default function AddDog() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [showConsentError, setShowConsentError] = useState(false);
+  const [showRequiredErrors, setShowRequiredErrors] = useState(false);
   const [photoExifLocation, setPhotoExifLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [form, setForm] = useState({
     name: '',
@@ -213,12 +214,19 @@ export default function AddDog() {
   };
 
   const [submitting, setSubmitting] = useState(false);
+  const isFormDisabled = uploading || submitting;
+  const showNameError = showRequiredErrors && !form.name;
+  const showPhotoError = showRequiredErrors && !form.photo;
+  const showLocationError = showRequiredErrors && !form.location;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.photo || !form.location) {
+      setShowRequiredErrors(true);
       toast({ title: t('addDog.toast.requiredFields'), variant: 'destructive' });
       return;
     }
+    setShowRequiredErrors(false);
     if (!form.contactConsent) {
       setShowConsentError(true);
       toast({
@@ -272,7 +280,8 @@ export default function AddDog() {
               <button
                 type="button"
                 onClick={() => { update('photo', ''); if (fileInputRef.current) fileInputRef.current.value = ''; }}
-                className="absolute top-2 right-2 glass h-8 w-8 rounded-full flex items-center justify-center text-primary-foreground text-sm font-bold"
+                className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-primary-foreground glass"
+                aria-label={locale === 'en' ? 'Remove selected photo' : 'არჩეული ფოტოს წაშლა'}
               >
                 ✕
               </button>
@@ -282,7 +291,9 @@ export default function AddDog() {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="w-full h-40 border-2 border-dashed border-muted-foreground/30 rounded-2xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 transition-colors"
+              className={`flex h-40 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed text-muted-foreground transition-colors hover:border-primary/50 ${
+                showPhotoError ? 'border-destructive/70' : 'border-muted-foreground/30'
+              }`}
             >
               {uploading ? (
                 <>
@@ -298,6 +309,11 @@ export default function AddDog() {
               )}
             </button>
           )}
+          {showPhotoError && (
+            <p className="mt-2 text-xs text-destructive" role="alert">
+              {locale === 'en' ? 'Add at least one photo before submitting.' : 'გამოქვეყნებამდე მინიმუმ ერთი ფოტო ატვირთე.'}
+            </p>
+          )}
         </div>
 
 
@@ -311,10 +327,23 @@ export default function AddDog() {
             setForm(prev => ({ ...prev, lat, lng, location: label }))
           }
         />
+        {showLocationError && (
+          <p className="-mt-2 px-1 text-xs text-destructive" role="alert">
+            {locale === 'en' ? 'Please choose a location on the map.' : 'გთხოვთ მონიშნოთ მდებარეობა რუკაზე.'}
+          </p>
+        )}
 
         {/* Two-column grid on tablet+ */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label={t('addDog.field.name')} value={form.name} onChange={v => update('name', v)} placeholder={t('addDog.field.namePh')} />
+          <FormField
+            name="pet-name"
+            label={t('addDog.field.name')}
+            value={form.name}
+            onChange={v => update('name', v)}
+            placeholder={t('addDog.field.namePh')}
+            required
+            error={showNameError ? (locale === 'en' ? 'Name is required.' : 'სახელის ველი სავალდებულოა.') : undefined}
+          />
           <FormField label={t('addDog.field.age')} value={form.age} onChange={v => update('age', v)} placeholder={t('addDog.field.agePh')} />
           <FormField label={t('addDog.field.breed')} value={form.breed} onChange={v => update('breed', v)} placeholder={t('addDog.field.breedPh')} />
         </div>
@@ -405,42 +434,86 @@ export default function AddDog() {
             </span>
           </span>
         </button>
+        {showConsentError && (
+          <p className="-mt-1 px-1 text-xs text-destructive" role="alert">
+            {locale === 'en'
+              ? 'Consent is required to publish contact information.'
+              : 'საკონტაქტო ინფორმაციის გამოსაქვეყნებლად თანხმობა სავალდებულოა.'}
+          </p>
+        )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-primary text-primary-foreground py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 hover:opacity-90 transition active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <PawPrint className="h-5 w-5" />}
-          {submitting ? t('addDog.submitting') : t('addDog.submit')}
-        </button>
+        <div className="sticky bottom-[5.4rem] z-20 -mx-1 rounded-2xl bg-background/85 px-1 pb-1 pt-2 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <button
+            type="submit"
+            disabled={isFormDisabled}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 font-semibold text-primary-foreground transition hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isFormDisabled ? <Loader2 className="h-5 w-5 animate-spin" /> : <PawPrint className="h-5 w-5" />}
+            {uploading
+              ? (locale === 'en' ? 'Processing photo...' : 'ფოტო მუშავდება...')
+              : submitting
+                ? t('addDog.submitting')
+                : t('addDog.submit')}
+          </button>
+        </div>
       </form>
     </div>
   );
 }
 
 function FormField({
-  label, value, onChange, placeholder, multiline,
+  name,
+  label,
+  value,
+  onChange,
+  placeholder,
+  multiline,
+  required,
+  error,
 }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string; multiline?: boolean;
+  name?: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  required?: boolean;
+  error?: string;
 }) {
+  const fieldId = name ?? label;
   return (
     <div className="glass rounded-2xl p-4">
-      <label className="block text-sm font-medium text-primary-foreground mb-2">{label}</label>
+      <label htmlFor={fieldId} className="mb-2 block text-sm font-medium text-primary-foreground">{label}</label>
       {multiline ? (
         <textarea
+          id={fieldId}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none resize-none min-h-[80px]"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${fieldId}-error` : undefined}
+          className={`min-h-[80px] w-full resize-none bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none ${
+            error ? 'text-destructive placeholder:text-destructive/60' : ''
+          }`}
         />
       ) : (
         <input
+          id={fieldId}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none"
+          required={required}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${fieldId}-error` : undefined}
+          className={`w-full bg-transparent text-sm text-primary-foreground placeholder:text-muted-foreground outline-none ${
+            error ? 'text-destructive placeholder:text-destructive/60' : ''
+          }`}
         />
+      )}
+      {error && (
+        <p id={`${fieldId}-error`} className="mt-2 text-xs text-destructive" role="alert">
+          {error}
+        </p>
       )}
     </div>
   );

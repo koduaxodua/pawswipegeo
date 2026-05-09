@@ -23,7 +23,7 @@ export function CookieConsent() {
   };
 
   return (
-    <div className="fixed inset-x-3 bottom-20 z-[90] mx-auto max-w-lg glass-strong rounded-2xl border border-border/60 p-4 shadow-2xl sm:p-5">
+    <div className="fixed inset-x-3 bottom-24 z-[90] mx-auto max-w-lg glass-strong rounded-2xl border border-border/60 p-4 shadow-2xl sm:p-5">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
           <ShieldCheck className="h-5 w-5" />

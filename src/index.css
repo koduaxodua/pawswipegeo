@@ -93,7 +93,10 @@
 
   /* Keyboard-only focus ring on raw <button>/<a> elements (shadcn Button has its own) */
   button:focus-visible,
-  a:focus-visible {
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 }
@@ -123,7 +126,7 @@
     padding-top: env(safe-area-inset-top, 0);
   }
   .pb-safe-nav {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0));
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0));
   }
   /* Clear the fixed corner chrome (brand logo left, KODUA + language right)
      so page header text does not slide behind it on narrow screens. */
