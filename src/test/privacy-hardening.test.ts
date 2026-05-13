@@ -72,9 +72,10 @@ describe('privacy/security hardening', () => {
     expect(read('src/pages/Terms.tsx')).toContain('/ka/privacy');
   });
 
-  it('uses an English content homepage and moves the swipe app to /app', () => {
+  it('keeps the previous homepage on root and moves the English ad content to /2', () => {
     const app = read('src/App.tsx');
     const homepage = read('src/pages/ContentPages.tsx');
+    const homepageV2 = read('src/pages/ContentPagesV2.tsx');
     const nav = read('src/components/BottomNav.tsx');
     const html = read('index.html');
 
@@ -83,14 +84,20 @@ describe('privacy/security hardening', () => {
     expect(app).toContain('path="/about" element={<AboutPage />}');
     expect(app).toContain('path="/safety" element={<SafetyPage />}');
     expect(app).toContain('path="/how-it-works" element={<HowItWorksPage />}');
+    expect(app).toContain('path="/2" element={<HomePageV2 />}');
+    expect(app).toContain('path="/2/about" element={<AboutPageV2 />}');
+    expect(app).toContain('path="/2/safety" element={<SafetyPageV2 />}');
+    expect(app).toContain('path="/2/how-it-works" element={<HowItWorksPageV2 />}');
     expect(app).toContain('path="/ka" element={<GeorgianLandingPage />}');
     expect(nav).toContain("path: '/app'");
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('Find and help homeless pets in Georgia');
-    expect(homepage).toContain('Georgian pet rescue community');
-    expect(homepage).toContain('Open App');
-    expect(homepage).toContain('Find, Adopt, Help.');
-    expect(homepage).not.toMatch(/[\u10A0-\u10FF]/);
+    expect(homepage).toContain('იპოვე ან დაამატე ცხოველი.');
+    expect(homepage).toContain('აპის გახსნა');
+    expect(homepageV2).toContain('Georgian pet rescue community');
+    expect(homepageV2).toContain('Open App');
+    expect(homepageV2).toContain('Find, Adopt, Help.');
+    expect(homepageV2).not.toMatch(/[\u10A0-\u10FF]/);
   });
 
   it('keeps app and form pages out of AdSense inventory', () => {
@@ -101,7 +108,7 @@ describe('privacy/security hardening', () => {
 
     expect(index).not.toContain('AdBanner');
     expect(index).not.toContain('showAd');
-    expect(consent).toContain("['/', '/about', '/safety', '/how-it-works']");
+    expect(consent).toContain("['/2', '/2/about', '/2/safety', '/2/how-it-works']");
     expect(consent).toContain('options: { allowAds?: boolean }');
     expect(consent).toContain('window.__mipoveLoadAdsense?.()');
     expect(html).toContain('__mipoveCanLoadAds');

@@ -20,6 +20,12 @@ import PrivacyKa from "./pages/PrivacyKa";
 import NotFound from "./pages/NotFound";
 import { HomePage, AboutPage, SafetyPage, HowItWorksPage, SeoGuard } from "./pages/ContentPages";
 import { GeorgianLandingPage } from "./pages/GeorgianLandingPage";
+import {
+  HomePage as HomePageV2,
+  AboutPage as AboutPageV2,
+  SafetyPage as SafetyPageV2,
+  HowItWorksPage as HowItWorksPageV2,
+} from "./pages/ContentPagesV2";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +63,10 @@ const App = () => (
             <Route path="/about" element={<AboutPage />} />
             <Route path="/safety" element={<SafetyPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/2" element={<HomePageV2 />} />
+            <Route path="/2/about" element={<AboutPageV2 />} />
+            <Route path="/2/safety" element={<SafetyPageV2 />} />
+            <Route path="/2/how-it-works" element={<HowItWorksPageV2 />} />
             <Route path="/ka" element={<GeorgianLandingPage />} />
             <Route path="/app" element={<Index />} />
             <Route path="/favorites" element={<Favorites />} />

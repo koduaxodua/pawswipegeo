@@ -8,7 +8,7 @@ import {
   type PrivacyConsentChoice,
 } from '@/lib/privacyConsent';
 
-const ADS_ALLOWED_PATHS = new Set(['/', '/about', '/safety', '/how-it-works']);
+const ADS_ALLOWED_PATHS = new Set(['/2', '/2/about', '/2/safety', '/2/how-it-works']);
 
 export function CookieConsent() {
   const { pathname } = useLocation();

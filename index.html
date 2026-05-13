@@ -53,7 +53,7 @@
         ad_personalization: 'denied'
       });
 
-      window.__MIPOVE_ADS_ALLOWED_PATHS__ = ['/', '/about', '/safety', '/how-it-works'];
+      window.__MIPOVE_ADS_ALLOWED_PATHS__ = ['/2', '/2/about', '/2/safety', '/2/how-it-works'];
 
       window.__mipoveCanLoadAds = function () {
         return window.__MIPOVE_ADS_ALLOWED_PATHS__.includes(window.location.pathname);

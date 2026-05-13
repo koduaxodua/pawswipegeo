@@ -6,7 +6,7 @@ export interface PrivacyConsentChoice {
 
 export const PRIVACY_CONSENT_KEY = 'mipove_privacy_consent_v1';
 export const GA_MEASUREMENT_ID = 'G-3VB5CW2P6K';
-const ADS_ALLOWED_PATHS = new Set(['/', '/about', '/safety', '/how-it-works']);
+const ADS_ALLOWED_PATHS = new Set(['/2', '/2/about', '/2/safety', '/2/how-it-works']);
 
 declare global {
   interface Window {
