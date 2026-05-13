@@ -48,7 +48,8 @@ describe('privacy/security hardening', () => {
     const useDogs = read('src/hooks/useDogs.ts');
     const locations = read('src/data/locations.ts');
 
-    expect(useDogs).toContain('location:public_location');
+    expect(useDogs).toContain(".from('pets_public')");
+    expect(useDogs).toContain("'location'");
     expect(useDogs).toContain('public_lat');
     expect(useDogs).toContain('public_lng');
     expect(useDogs).not.toContain(".select('*')");
@@ -82,22 +83,29 @@ describe('privacy/security hardening', () => {
     expect(app).toContain('path="/about" element={<AboutPage />}');
     expect(app).toContain('path="/safety" element={<SafetyPage />}');
     expect(app).toContain('path="/how-it-works" element={<HowItWorksPage />}');
+    expect(app).toContain('path="/ka" element={<GeorgianLandingPage />}');
     expect(nav).toContain("path: '/app'");
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('Find and help homeless pets in Georgia');
-    expect(homepage).toContain('Pet rescue in Georgia');
-    expect(homepage).toContain('აპის გახსნა');
-    expect(homepage).toContain('Safety and privacy guide');
+    expect(homepage).toContain('Georgian pet rescue community');
+    expect(homepage).toContain('Open App');
+    expect(homepage).toContain('Find, Adopt, Help.');
+    expect(homepage).not.toMatch(/[\u10A0-\u10FF]/);
   });
 
   it('keeps app and form pages out of AdSense inventory', () => {
     const index = read('src/pages/Index.tsx');
     const consent = read('src/lib/privacyConsent.ts');
+    const html = read('index.html');
     const app = read('src/App.tsx');
 
     expect(index).not.toContain('AdBanner');
     expect(index).not.toContain('showAd');
     expect(consent).toContain("['/', '/about', '/safety', '/how-it-works']");
+    expect(consent).toContain('options: { allowAds?: boolean }');
+    expect(consent).toContain('window.__mipoveLoadAdsense?.()');
+    expect(html).toContain('__mipoveCanLoadAds');
+    expect(html).toContain('__MIPOVE_ADS_ALLOWED_PATHS__');
     expect(consent).toContain('isAdsAllowedOnCurrentPage()');
     expect(app).toContain('SeoGuard');
     expect(read('src/pages/Missions.tsx')).not.toMatch(/coming soon|In development|under construction/i);
@@ -108,6 +116,8 @@ describe('privacy/security hardening', () => {
 
     expect(source).toContain('ვეთანხმები');
     expect(source).toContain('მხოლოდ აუცილებელი');
+    expect(source).toContain('Privacy choices');
+    expect(source).toContain('allowAds');
     expect(source).toContain('/ka/privacy');
     expect(source).not.toContain('type="checkbox"');
   });
@@ -205,6 +215,37 @@ describe('privacy/security hardening', () => {
     expect(mapSheet).toContain('setSelectedId(focusedDogId)');
     expect(favorites).toContain('handleShowDogOnMap');
     expect(favorites).toContain('<MapSheet');
+  });
+
+  it('separates Georgian UX from English ad content and improves app controls', () => {
+    const georgianLanding = read('src/pages/GeorgianLandingPage.tsx');
+    const cardFooter = read('src/components/CardFooterActions.tsx');
+    const tutorial = read('src/components/SwipeTutorialV2.tsx');
+    const skeleton = read('src/components/SkeletonCardStack.tsx');
+    const swipeCard = read('src/components/SwipeCard.tsx');
+    const vercel = read('vercel.json');
+    const robots = read('public/robots.txt');
+    const migration = read('supabase/migrations/0005_public_pets_view_hidden_at_hardening.sql');
+
+    expect(georgianLanding).toContain('to="/app"');
+    expect(georgianLanding).toContain('to="/add"');
+    expect(georgianLanding).toContain('to="/missions"');
+    expect(cardFooter).toContain('onLike');
+    expect(cardFooter).toContain('onMap');
+    expect(cardFooter).toContain('onNope');
+    expect(tutorial).toContain('pawswipe_tutorial_seen_v2');
+    expect(skeleton).toContain('[2, 1, 0]');
+    expect(swipeCard).toContain('caretakerPhone');
+    expect(swipeCard).toContain('has phone');
+    expect(vercel).toContain('"source": "/ka"');
+    expect(vercel).toContain('"source": "/missions"');
+    expect(vercel).toContain('X-Robots-Tag');
+    expect(robots).toContain('Disallow: /ka');
+    expect(robots).toContain('Disallow: /missions');
+    expect(migration).toContain('create or replace view public.pets_public');
+    expect(migration).not.toMatch(/\n\s+hidden_at,/);
+    expect(migration).not.toMatch(/\n\s+lat,/);
+    expect(migration).not.toMatch(/\n\s+lng,/);
   });
 
   it('supports keyboard arrow shortcuts on the swipe screen', () => {

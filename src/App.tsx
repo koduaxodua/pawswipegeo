@@ -6,7 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { BottomNav } from "@/components/BottomNav";
 import { TopLeftBrand } from "@/components/TopLeftBrand";
 import { TopRightLogo } from "@/components/TopRightLogo";
-import { Tutorial } from "@/components/Tutorial";
+import { SwipeTutorialV2 } from "@/components/SwipeTutorialV2";
 import { CookieConsent } from "@/components/CookieConsent";
 import { LocaleProvider } from "@/contexts/Locale";
 import Index from "./pages/Index";
@@ -19,6 +19,7 @@ import AdminLogin from "./pages/AdminLogin";
 import PrivacyKa from "./pages/PrivacyKa";
 import NotFound from "./pages/NotFound";
 import { HomePage, AboutPage, SafetyPage, HowItWorksPage, SeoGuard } from "./pages/ContentPages";
+import { GeorgianLandingPage } from "./pages/GeorgianLandingPage";
 
 const queryClient = new QueryClient();
 
@@ -35,7 +36,7 @@ function AppChrome() {
           <BottomNav />
           <TopLeftBrand />
           <TopRightLogo />
-          <Tutorial />
+          {pathname === '/app' && <SwipeTutorialV2 />}
         </>
       )}
       <CookieConsent />
@@ -56,6 +57,7 @@ const App = () => (
             <Route path="/about" element={<AboutPage />} />
             <Route path="/safety" element={<SafetyPage />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/ka" element={<GeorgianLandingPage />} />
             <Route path="/app" element={<Index />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/add" element={<AddDog />} />

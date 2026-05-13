@@ -45,12 +45,33 @@
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+
       gtag('consent', 'default', {
         analytics_storage: 'denied',
         ad_storage: 'denied',
         ad_user_data: 'denied',
         ad_personalization: 'denied'
       });
+
+      window.__MIPOVE_ADS_ALLOWED_PATHS__ = ['/', '/about', '/safety', '/how-it-works'];
+
+      window.__mipoveCanLoadAds = function () {
+        return window.__MIPOVE_ADS_ALLOWED_PATHS__.includes(window.location.pathname);
+      };
+
+      window.__mipoveLoadAdsense = function () {
+        if (!window.__mipoveCanLoadAds()) return;
+        if (window.__mipoveAdsLoaded) return;
+
+        window.__mipoveAdsLoaded = true;
+        window.adsbygoogle = window.adsbygoogle || [];
+
+        var script = document.createElement('script');
+        script.async = true;
+        script.crossOrigin = 'anonymous';
+        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5803703412690830';
+        document.head.appendChild(script);
+      };
     </script>
   </head>
   <body>

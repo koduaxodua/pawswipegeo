@@ -3,10 +3,11 @@ import { AnimatePresence } from 'framer-motion';
 import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
 import { MapSheet } from '@/components/MapSheet';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CardFooterActions } from '@/components/CardFooterActions';
+import { SkeletonCardStack } from '@/components/SkeletonCardStack';
 import { useDogs } from '@/hooks/useDogs';
 import { useLikedDogs } from '@/hooks/useLikedDogs';
-import { Heart, X, RotateCcw, Map } from 'lucide-react';
+import { RotateCcw, Map } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
@@ -130,14 +131,7 @@ export default function Index() {
 
       {isLoading ? (
         <div className="flex w-full min-h-0 flex-1 flex-col items-center justify-center gap-4 py-2">
-          <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
-            <Skeleton className="h-[52vh] max-h-[420px] w-full rounded-3xl" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-[52px] w-[52px] rounded-full" />
-            <Skeleton className="h-[52px] w-28 rounded-full" />
-            <Skeleton className="h-[60px] w-[60px] rounded-full" />
-          </div>
+          <SkeletonCardStack />
           <div className="text-center">
             <p className="text-sm font-medium text-foreground">{t('index.loading.title')}</p>
             <p className="text-xs text-muted-foreground">{t('index.loading.sub')}</p>
@@ -200,34 +194,17 @@ export default function Index() {
           </div>
 
           {/* Action buttons + Map button row — always visible. Asymmetry is intentional (Tinder-style emphasis on Like). */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <button
-              onClick={() => runAnimatedSwipe('left')}
-              disabled={!!activeSwipeDirection}
-              className="glass flex h-[52px] w-[52px] items-center justify-center rounded-full text-destructive transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label={t('index.action.skip')}
-            >
-              <X className="h-6 w-6" />
-            </button>
-
-            <button
-              onClick={openMap}
-              className="glass inline-flex h-[52px] items-center gap-1.5 rounded-full bg-primary/10 px-4 transition-transform hover:scale-105 active:scale-95"
-              aria-label={t('index.action.map')}
-            >
-              <Map className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">{t('index.action.map')}</span>
-            </button>
-
-            <button
-              onClick={() => runAnimatedSwipe('right')}
-              disabled={!!activeSwipeDirection}
-              className="glass flex h-[60px] w-[60px] items-center justify-center rounded-full text-accent transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-              aria-label={t('index.action.like')}
-            >
-              <Heart className="h-7 w-7" fill="currentColor" />
-            </button>
-          </div>
+          <CardFooterActions
+            disabled={!!activeSwipeDirection}
+            onNope={() => runAnimatedSwipe('left')}
+            onMap={openMap}
+            onLike={() => runAnimatedSwipe('right')}
+            labels={{
+              nope: t('index.action.skip'),
+              map: t('index.action.map'),
+              like: t('index.action.like'),
+            }}
+          />
         </div>
       )}
 

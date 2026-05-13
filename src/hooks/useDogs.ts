@@ -15,7 +15,7 @@ export const PUBLIC_PET_COLUMNS = [
   'gender',
   'personality',
   'health',
-  'location:public_location',
+  'location',
   'public_lat',
   'public_lng',
   'photo_url',
@@ -24,6 +24,7 @@ export const PUBLIC_PET_COLUMNS = [
   'description',
   'created_at',
 ].join(',');
+const BASE_PET_PUBLIC_COLUMNS = PUBLIC_PET_COLUMNS.replace('location', 'location:public_location');
 
 export function useDogs() {
   const [customDogs, setCustomDogs] = useState<Dog[]>(() => {
@@ -51,11 +52,25 @@ export function useDogs() {
     if (!supabase) return;
     let cancelled = false;
     (async () => {
-      const { data, error } = await supabase
-        .from('pets')
+      let { data, error } = await supabase
+        .from('pets_public')
         .select(PUBLIC_PET_COLUMNS)
-        .eq('status', 'available')
         .order('created_at', { ascending: false });
+
+      if (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[useDogs] pets_public unavailable, falling back to pets RLS');
+        }
+
+        const fallback = await supabase
+          .from('pets')
+          .select(BASE_PET_PUBLIC_COLUMNS)
+          .eq('status', 'available')
+          .order('created_at', { ascending: false });
+        data = fallback.data;
+        error = fallback.error;
+      }
+
       if (cancelled) return;
       if (error) {
         if (import.meta.env.DEV) {

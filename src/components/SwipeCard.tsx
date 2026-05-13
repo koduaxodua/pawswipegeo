@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { animate, motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
 import type { Dog } from '@/data/dogs';
-import { MapPin, Info } from 'lucide-react';
-import { useT } from '@/contexts/Locale';
+import { MapPin, Info, Phone } from 'lucide-react';
+import { useLocale, useT } from '@/contexts/Locale';
 import { useTranslatedDog } from '@/hooks/useTranslatedDog';
 import { AdaptivePetPhoto } from '@/components/AdaptivePetPhoto';
 
@@ -17,6 +17,7 @@ interface SwipeCardProps {
 
 export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop, exitDirection = 'right', activeSwipeDirection }: SwipeCardProps) {
   const t = useT();
+  const { locale } = useLocale();
   const dog = useTranslatedDog(rawDog) ?? rawDog;
   const dragRef = useRef(false);
   const x = useMotionValue(0);
@@ -104,6 +105,13 @@ export function SwipeCard({ dog: rawDog, onSwipe, onTap, isTop, exitDirection = 
               <span className="text-3xl font-bold text-red-400">{t('card.nope')}</span>
             </motion.div>
           </>
+        )}
+
+        {dog.caretakerPhone && (
+          <div className="absolute right-4 top-4 z-20 inline-flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+            <Phone className="h-3.5 w-3.5" />
+            {locale === 'en' ? 'has phone' : 'ნომერი აქვს'}
+          </div>
         )}
 
         {/* Dog info */}

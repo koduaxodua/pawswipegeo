@@ -6,7 +6,6 @@ export interface PrivacyConsentChoice {
 
 export const PRIVACY_CONSENT_KEY = 'mipove_privacy_consent_v1';
 export const GA_MEASUREMENT_ID = 'G-3VB5CW2P6K';
-export const ADSENSE_CLIENT = 'ca-pub-5803703412690830';
 const ADS_ALLOWED_PATHS = new Set(['/', '/about', '/safety', '/how-it-works']);
 
 declare global {
@@ -16,6 +15,9 @@ declare global {
     adsbygoogle?: unknown[];
     __mipoveGaLoaded?: boolean;
     __mipoveAdsLoaded?: boolean;
+    __MIPOVE_ADS_ALLOWED_PATHS__?: string[];
+    __mipoveCanLoadAds?: () => boolean;
+    __mipoveLoadAdsense?: () => void;
   }
 }
 
@@ -28,8 +30,15 @@ export function getPrivacyConsent(): PrivacyConsentChoice | null {
   }
 }
 
-export function savePrivacyConsent(choice: Omit<PrivacyConsentChoice, 'decidedAt'>): PrivacyConsentChoice {
-  const next = { ...choice, decidedAt: new Date().toISOString() };
+export function savePrivacyConsent(
+  choice: Omit<PrivacyConsentChoice, 'decidedAt'>,
+  options: { allowAds?: boolean } = {}
+): PrivacyConsentChoice {
+  const next = {
+    ...choice,
+    ads: Boolean(choice.ads && options.allowAds && isAdsAllowedOnCurrentPage()),
+    decidedAt: new Date().toISOString(),
+  };
   localStorage.setItem(PRIVACY_CONSENT_KEY, JSON.stringify(next));
   applyPrivacyConsent(next);
   return next;
@@ -37,7 +46,7 @@ export function savePrivacyConsent(choice: Omit<PrivacyConsentChoice, 'decidedAt
 
 export function applyPrivacyConsent(choice: PrivacyConsentChoice | null): void {
   const analytics = Boolean(choice?.analytics);
-  const ads = Boolean(choice?.ads);
+  const ads = Boolean(choice?.ads && isAdsAllowedOnCurrentPage());
   window.dataLayer = window.dataLayer || [];
   window.gtag = window.gtag || function gtag() { window.dataLayer?.push(arguments); };
   window.gtag('consent', 'update', {
@@ -48,7 +57,7 @@ export function applyPrivacyConsent(choice: PrivacyConsentChoice | null): void {
   });
 
   if (analytics) loadGoogleAnalytics();
-  if (ads && isAdsAllowedOnCurrentPage()) loadGoogleAds();
+  if (ads) window.__mipoveLoadAdsense?.();
 }
 
 export function isAdsAllowedOnCurrentPage(): boolean {
@@ -73,12 +82,3 @@ function loadGoogleAnalytics(): void {
   window.gtag?.('config', GA_MEASUREMENT_ID);
 }
 
-function loadGoogleAds(): void {
-  if (window.__mipoveAdsLoaded) return;
-  window.__mipoveAdsLoaded = true;
-  window.adsbygoogle = window.adsbygoogle || [];
-  appendScript(
-    `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`,
-    { crossorigin: 'anonymous' }
-  );
-}
