@@ -85,7 +85,8 @@ describe('privacy/security hardening', () => {
     expect(nav).toContain("path: '/app'");
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('Find and help homeless pets in Georgia');
-    expect(homepage).toContain('Community pet rescue in Georgia');
+    expect(homepage).toContain('Pet rescue in Georgia');
+    expect(homepage).toContain('აპის გახსნა');
     expect(homepage).toContain('Safety and privacy guide');
   });
 

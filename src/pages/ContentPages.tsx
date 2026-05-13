@@ -56,35 +56,42 @@ export function SeoGuard() {
 export function HomePage() {
   return (
     <ContentShell>
-      <section className="grid gap-8 py-10 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-16">
-        <div>
-          <p className="mb-3 inline-flex rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            Community pet rescue in Georgia
+      <section className="grid min-h-[calc(100dvh-96px)] gap-7 py-8 md:grid-cols-[1fr_0.9fr] md:items-center md:py-10">
+        <div className="flex flex-col justify-center">
+          <p className="mb-3 inline-flex w-fit rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            Pet rescue in Georgia
           </p>
-          <h1 className="max-w-3xl text-4xl font-bold tracking-normal text-foreground sm:text-5xl">
-            Find, share, and help homeless pets with safer public listings.
+          <h1 className="max-w-2xl text-4xl font-bold tracking-normal text-foreground sm:text-5xl">
+            Find a pet nearby.
+            <span className="mt-2 block text-primary">იპოვე ან დაამატე ცხოველი.</span>
           </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
-            mipove.me is an online information platform for people who find homeless, lost, or adoptable dogs and cats.
-            It helps listings become easier to browse, map, and review while keeping contact and location privacy clear.
+          <p className="mt-5 max-w-xl text-base leading-7 text-muted-foreground">
+            Browse homeless, lost, or adoptable dogs and cats, see approximate map locations, and contact the listed
+            caretaker when public contact information is available.
           </p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/app" className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:opacity-90">
-              Open pet app <ArrowRight className="h-4 w-4" />
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link to="/app" className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-primary px-7 text-base font-bold text-primary-foreground shadow-lg shadow-primary/25 transition hover:opacity-90 active:scale-[0.98]">
+              აპის გახსნა <ArrowRight className="h-5 w-5" />
             </Link>
-            <Link to="/how-it-works" className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-secondary">
-              How it works
+            <Link to="/add" className="inline-flex h-14 items-center justify-center gap-2 rounded-full border border-border bg-secondary/70 px-6 text-base font-semibold text-foreground transition hover:bg-secondary active:scale-[0.98]">
+              ცხოველის დამატება
             </Link>
           </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            English information for site review is below. The main app remains simple for Georgian users.
+          </p>
         </div>
 
-        <div className="rounded-[2rem] border border-border/70 bg-card/70 p-4 shadow-2xl shadow-black/30">
+        <Link to="/app" className="group rounded-[2rem] border border-border/70 bg-card/70 p-3 shadow-2xl shadow-black/30 transition hover:border-primary/40">
           <img
             src="/brand/og-image.jpg"
             alt="mipove.me pet listing interface preview"
-            className="aspect-[4/5] w-full rounded-[1.4rem] object-cover"
+            className="aspect-[4/5] max-h-[62dvh] w-full rounded-[1.4rem] object-cover"
           />
-        </div>
+          <span className="mt-3 flex items-center justify-center gap-2 rounded-full bg-primary/10 py-3 text-sm font-semibold text-primary transition group-hover:bg-primary/15">
+            Start browsing <ArrowRight className="h-4 w-4" />
+          </span>
+        </Link>
       </section>
 
       <FeatureGrid
@@ -182,6 +189,9 @@ export function HowItWorksPage() {
 }
 
 function ContentShell({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const showMobileAppCta = pathname === '/';
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <header className="border-b border-border/60 bg-background/80 backdrop-blur">
@@ -193,17 +203,27 @@ function ContentShell({ children }: { children: ReactNode }) {
               <span className="text-xs text-muted-foreground">Pet rescue listings in Georgia</span>
             </div>
           </Link>
-          <nav className="hidden items-center gap-5 text-sm text-muted-foreground sm:flex">
-            <Link to="/about" className="hover:text-foreground">About</Link>
-            <Link to="/safety" className="hover:text-foreground">Safety</Link>
-            <Link to="/how-it-works" className="hover:text-foreground">How it works</Link>
+          <nav className="flex items-center gap-3 text-sm text-muted-foreground sm:gap-5">
+            <Link to="/about" className="hidden hover:text-foreground sm:inline">About</Link>
+            <Link to="/safety" className="hidden hover:text-foreground sm:inline">Safety</Link>
+            <Link to="/how-it-works" className="hidden hover:text-foreground sm:inline">How it works</Link>
             <Link to="/app" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground hover:opacity-90">
-              Open app
+              აპი
             </Link>
           </nav>
         </div>
       </header>
-      <div className="mx-auto max-w-6xl px-4 pb-16">{children}</div>
+      <div className="mx-auto max-w-6xl px-4 pb-20">{children}</div>
+      {showMobileAppCta && (
+        <div className="fixed inset-x-3 bottom-3 z-40 sm:hidden">
+          <Link
+            to="/app"
+            className="flex h-14 items-center justify-center gap-2 rounded-full bg-primary text-base font-bold text-primary-foreground shadow-2xl shadow-black/40"
+          >
+            აპის გახსნა <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      )}
       <footer className="border-t border-border/60 px-4 py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <span>mipove.me helps people share pet rescue information responsibly.</span>
