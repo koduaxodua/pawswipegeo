@@ -3,7 +3,7 @@ import { Heart, PawPrint, Plus, FileText, Trophy } from 'lucide-react';
 import { useT, type TKey } from '@/contexts/Locale';
 
 const navItems: { path: string; icon: typeof PawPrint; labelKey: TKey }[] = [
-  { path: '/', icon: PawPrint, labelKey: 'nav.swipe' },
+  { path: '/app', icon: PawPrint, labelKey: 'nav.swipe' },
   { path: '/favorites', icon: Heart, labelKey: 'nav.favorites' },
   { path: '/add', icon: Plus, labelKey: 'nav.add' },
   { path: '/missions', icon: Trophy, labelKey: 'nav.missions' },

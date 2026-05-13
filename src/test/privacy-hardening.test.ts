@@ -71,6 +71,37 @@ describe('privacy/security hardening', () => {
     expect(read('src/pages/Terms.tsx')).toContain('/ka/privacy');
   });
 
+  it('uses an English content homepage and moves the swipe app to /app', () => {
+    const app = read('src/App.tsx');
+    const homepage = read('src/pages/ContentPages.tsx');
+    const nav = read('src/components/BottomNav.tsx');
+    const html = read('index.html');
+
+    expect(app).toContain('path="/" element={<HomePage />}');
+    expect(app).toContain('path="/app" element={<Index />}');
+    expect(app).toContain('path="/about" element={<AboutPage />}');
+    expect(app).toContain('path="/safety" element={<SafetyPage />}');
+    expect(app).toContain('path="/how-it-works" element={<HowItWorksPage />}');
+    expect(nav).toContain("path: '/app'");
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('Find and help homeless pets in Georgia');
+    expect(homepage).toContain('Community pet rescue in Georgia');
+    expect(homepage).toContain('Safety and privacy guide');
+  });
+
+  it('keeps app and form pages out of AdSense inventory', () => {
+    const index = read('src/pages/Index.tsx');
+    const consent = read('src/lib/privacyConsent.ts');
+    const app = read('src/App.tsx');
+
+    expect(index).not.toContain('AdBanner');
+    expect(index).not.toContain('showAd');
+    expect(consent).toContain("['/', '/about', '/safety', '/how-it-works']");
+    expect(consent).toContain('isAdsAllowedOnCurrentPage()');
+    expect(app).toContain('SeoGuard');
+    expect(read('src/pages/Missions.tsx')).not.toMatch(/coming soon|In development|under construction/i);
+  });
+
   it('keeps consent UI simple without granular checkboxes', () => {
     const source = read('src/components/CookieConsent.tsx');
 

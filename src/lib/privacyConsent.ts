@@ -7,6 +7,7 @@ export interface PrivacyConsentChoice {
 export const PRIVACY_CONSENT_KEY = 'mipove_privacy_consent_v1';
 export const GA_MEASUREMENT_ID = 'G-3VB5CW2P6K';
 export const ADSENSE_CLIENT = 'ca-pub-5803703412690830';
+const ADS_ALLOWED_PATHS = new Set(['/', '/about', '/safety', '/how-it-works']);
 
 declare global {
   interface Window {
@@ -47,7 +48,12 @@ export function applyPrivacyConsent(choice: PrivacyConsentChoice | null): void {
   });
 
   if (analytics) loadGoogleAnalytics();
-  if (ads) loadGoogleAds();
+  if (ads && isAdsAllowedOnCurrentPage()) loadGoogleAds();
+}
+
+export function isAdsAllowedOnCurrentPage(): boolean {
+  if (typeof window === 'undefined') return false;
+  return ADS_ALLOWED_PATHS.has(window.location.pathname);
 }
 
 function appendScript(src: string, attrs: Record<string, string> = {}): void {

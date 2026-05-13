@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { SwipeCard } from '@/components/SwipeCard';
 import { DogDetailSheet } from '@/components/DogDetailSheet';
-import { AdBanner } from '@/components/AdBanner';
 import { MapSheet } from '@/components/MapSheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDogs } from '@/hooks/useDogs';
@@ -12,7 +11,6 @@ import { toast } from '@/hooks/use-toast';
 import { useT } from '@/contexts/Locale';
 import type { Dog } from '@/data/dogs';
 
-const AD_FREQUENCY = 5;
 const SHEET_SWITCH_DELAY_MS = 320;
 const PROGRAMMATIC_SWIPE_MS = 220;
 
@@ -27,8 +25,6 @@ export default function Index() {
   const { dogs, loading } = useDogs();
   const { likedDogs, dislikedDogs, likeDog, dislikeDog, resetDisliked } = useLikedDogs();
   const [selectedDog, setSelectedDog] = useState<Dog | null>(null);
-  const [swipeCount, setSwipeCount] = useState(0);
-  const [showAd, setShowAd] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
   const [mapFocusDogId, setMapFocusDogId] = useState<string | null>(null);
   const [swipeExitDirection, setSwipeExitDirection] = useState<'left' | 'right'>('right');
@@ -53,13 +49,6 @@ export default function Index() {
       } else {
         dislikeDog(currentDog);
       }
-      setSwipeCount(prev => {
-        const next = prev + 1;
-        if (next % AD_FREQUENCY === 0) {
-          setShowAd(true);
-        }
-        return next;
-      });
     },
     [currentDog, likeDog, dislikeDog, t]
   );
@@ -71,7 +60,7 @@ export default function Index() {
 
   const runAnimatedSwipe = useCallback(
     (direction: 'left' | 'right') => {
-      if (!currentDog || showAd || activeSwipeDirection) return;
+      if (!currentDog || activeSwipeDirection) return;
       setSwipeExitDirection(direction);
       setActiveSwipeDirection(direction);
       window.setTimeout(() => {
@@ -79,7 +68,7 @@ export default function Index() {
         setActiveSwipeDirection(null);
       }, PROGRAMMATIC_SWIPE_MS);
     },
-    [activeSwipeDirection, currentDog, handleSwipe, showAd]
+    [activeSwipeDirection, currentDog, handleSwipe]
   );
 
   const openMap = () => {
@@ -108,7 +97,7 @@ export default function Index() {
         return;
       }
 
-      if (selectedDog || mapOpen || showAd) return;
+      if (selectedDog || mapOpen) return;
 
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -124,7 +113,7 @@ export default function Index() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentDog, mapOpen, runAnimatedSwipe, selectedDog, showAd]);
+  }, [currentDog, mapOpen, runAnimatedSwipe, selectedDog]);
 
   const allSwiped = availableDogs.length === 0;
   const isLoading = loading && dogs.length === 0;
@@ -193,25 +182,19 @@ export default function Index() {
           {/* Card stack — flexible height, capped to fit on small phones */}
           <div className="relative w-full max-w-sm sm:max-w-md lg:max-w-lg flex-1 min-h-0 aspect-[3/4] mx-auto" style={{ maxHeight: 'min(calc(100dvh - 320px), 70vh)' }}>
             <AnimatePresence>
-              {showAd ? (
-                <AdBanner key="ad" onDismiss={() => setShowAd(false)} />
-              ) : (
-                <>
-                  {nextDog && (
-                    <SwipeCard key={nextDog.id} dog={nextDog} onSwipe={() => {}} isTop={false} />
-                  )}
-                  {currentDog && (
-                    <SwipeCard
-                      key={currentDog.id}
-                      dog={currentDog}
-                      onSwipe={handleSwipe}
-                      onTap={() => setSelectedDog(currentDog)}
-                      isTop={true}
-                      exitDirection={swipeExitDirection}
-                      activeSwipeDirection={activeSwipeDirection}
-                    />
-                  )}
-                </>
+              {nextDog && (
+                <SwipeCard key={nextDog.id} dog={nextDog} onSwipe={() => {}} isTop={false} />
+              )}
+              {currentDog && (
+                <SwipeCard
+                  key={currentDog.id}
+                  dog={currentDog}
+                  onSwipe={handleSwipe}
+                  onTap={() => setSelectedDog(currentDog)}
+                  isTop={true}
+                  exitDirection={swipeExitDirection}
+                  activeSwipeDirection={activeSwipeDirection}
+                />
               )}
             </AnimatePresence>
           </div>
@@ -220,7 +203,7 @@ export default function Index() {
           <div className="flex items-center gap-4 flex-shrink-0">
             <button
               onClick={() => runAnimatedSwipe('left')}
-              disabled={showAd || !!activeSwipeDirection}
+              disabled={!!activeSwipeDirection}
               className="glass flex h-[52px] w-[52px] items-center justify-center rounded-full text-destructive transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label={t('index.action.skip')}
             >
@@ -238,7 +221,7 @@ export default function Index() {
 
             <button
               onClick={() => runAnimatedSwipe('right')}
-              disabled={showAd || !!activeSwipeDirection}
+              disabled={!!activeSwipeDirection}
               className="glass flex h-[60px] w-[60px] items-center justify-center rounded-full text-accent transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label={t('index.action.like')}
             >

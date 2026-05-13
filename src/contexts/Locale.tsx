@@ -210,8 +210,8 @@ const TRANSLATIONS = {
 
   // Missions
   'missions.title':         { ka: 'მისიები', en: 'Missions' },
-  'missions.soon.badge':    { ka: 'შემუშავება მიმდინარეობს', en: 'In development' },
-  'missions.soon.text':     { ka: 'ჩელენჯები, XP და ლიდერბორდი მალე ჩაირთვება.', en: 'Challenges, XP, and leaderboard coming soon.' },
+  'missions.soon.badge':    { ka: 'სამაშველო ნაბიჯები', en: 'Rescue steps' },
+  'missions.soon.text':     { ka: 'პრაქტიკული რჩევები ცხოველის უსაფრთხოდ დასახმარებლად.', en: 'Practical guidance for helping pets safely.' },
 
   // Misc
   'common.cancel':          { ka: 'გაუქმება', en: 'Cancel' },

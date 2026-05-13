@@ -36,7 +36,7 @@ export function TopLeftBrand() {
   return (
     <div className="fixed left-3 top-5 z-30 safe-area-top pointer-events-none sm:top-4">
       <Link
-        to="/"
+        to="/app"
         onClick={handleBrandClick}
         className="pointer-events-auto block rounded-2xl bg-background/45 p-1.5 shadow-[0_10px_30px_rgba(0,0,0,0.35)] ring-1 ring-white/10 backdrop-blur-md transition-transform hover:scale-105 active:scale-95"
         aria-label="mipove.me home"
